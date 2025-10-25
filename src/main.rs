@@ -1,8 +1,8 @@
 use clap::Parser;
-use greprs::{colors::Color, run};
 use std::env::current_dir;
 use std::fs::canonicalize;
 use std::path::PathBuf;
+use xgrep::{colors::Color, run};
 
 fn resolve_path(path: Option<PathBuf>) -> PathBuf {
     let final_path = match path {
