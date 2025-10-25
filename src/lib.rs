@@ -1,5 +1,21 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
+pub mod colorizer;
+pub mod colors;
+pub mod crawler;
+pub mod search;
+
+use colors::Color;
+use crawler::get_directory_files;
+use search::{search_directory, search_file};
+use std::path::PathBuf;
+
+pub fn run(dir: &PathBuf, pattern: &str, color: &Color) {
+    if dir.is_file() {
+        search_file(&dir, &pattern, &color);
+        return;
+    }
+
+    let files = get_directory_files(&dir);
+    search_directory(&files, &pattern, &color);
 }
 
 #[cfg(test)]
