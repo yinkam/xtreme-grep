@@ -1,10 +1,9 @@
-use crate::colorizer::TextColorizer;
-use crate::colors::Color;
+use crate::highlighter::TextHighlighter;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::PathBuf;
 
-pub fn search_file(filepath: &PathBuf, pattern: &str, color: &Color) {
+pub fn search_file(filepath: &PathBuf, pattern: &str, highlighter: &TextHighlighter) {
     let file = File::open(filepath);
     let reader = BufReader::new(match file {
         Ok(f) => f,
@@ -24,17 +23,13 @@ pub fn search_file(filepath: &PathBuf, pattern: &str, color: &Color) {
             }
         };
         if line.contains(pattern) {
-            println!(
-                "Line {}:\t {}",
-                index + 1,
-                TextColorizer::new(pattern, color).colorize(&line)
-            );
+            println!("Line {}:\t {}", index + 1, highlighter.highlight(&line));
         }
     }
 }
 
-pub fn search_directory(files: &Vec<PathBuf>, pattern: &str, color: &Color) {
+pub fn search_directory(files: &Vec<PathBuf>, pattern: &str, highlighter: &TextHighlighter) {
     for file in files {
-        search_file(&file, pattern, color)
+        search_file(&file, pattern, highlighter)
     }
 }

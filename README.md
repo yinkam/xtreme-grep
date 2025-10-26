@@ -74,7 +74,7 @@ The project is organized into several focused modules:
 - **`lib.rs`**: Core library interface and main run logic
 - **`search.rs`**: File and directory searching functionality
 - **`crawler.rs`**: Directory traversal using `walkdir` crate
-- **`colorizer.rs`**: Text highlighting using regex pattern matching
+- **`highlighter.rs`**: Text highlighting using regex pattern matching
 - **`colors.rs`**: Color definitions and ANSI escape code management
 
 ### Key Design Decisions
