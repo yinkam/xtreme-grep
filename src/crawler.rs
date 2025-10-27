@@ -9,7 +9,11 @@ fn is_hidden(entry: &DirEntry) -> bool {
         .unwrap_or(false)
 }
 
-pub fn get_directory_files(dir: &PathBuf) -> Vec<PathBuf> {
+pub fn get_files(dir: &PathBuf) -> Vec<PathBuf> {
+    if dir.is_file() {
+        return vec![dir.clone()];
+    }
+
     WalkDir::new(dir)
         .into_iter()
         .filter_entry(|e| !is_hidden(e))

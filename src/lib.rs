@@ -4,21 +4,13 @@ pub mod highlighter;
 pub mod search;
 
 use colors::Color;
-use crawler::get_directory_files;
-use highlighter::TextHighlighter;
-use search::{search_directory, search_file};
+use crawler::get_files;
+use search::search_files;
 use std::path::PathBuf;
 
 pub fn run(dir: &PathBuf, pattern: &str, color: &Color) {
-    let highlighter = TextHighlighter::new(pattern, color);
-
-    if dir.is_file() {
-        search_file(&dir, &pattern, &highlighter);
-        return;
-    }
-
-    let files = get_directory_files(&dir);
-    search_directory(&files, &pattern, &highlighter);
+    let files = get_files(&dir);
+    search_files(&files, &pattern, &color);
 }
 
 #[cfg(test)]
