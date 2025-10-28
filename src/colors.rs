@@ -81,9 +81,9 @@ mod tests {
             ("Red", Color::Red),
             ("rEd", Color::Red),
         ];
-        for (color_str, expected_color) in color_cases {
+        for (color_str, _expected_color) in color_cases {
             let color = Color::from_str(color_str);
-            assert!(matches!(color, Some(expected_color)));
+            assert!(matches!(color, Some(_expected_color)));
         }
     }
 
