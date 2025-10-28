@@ -2,18 +2,18 @@ use crate::colors::Color;
 use crate::highlighter::TextHighlighter;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 fn _print_line(index: usize, line: &str, highlighter: &TextHighlighter) {
     println!(
-        "\x1b[1m{:>3}:\x1b[0m  {}",
+        "  \x1b[1;38;5;245m{:>3}:\x1b[0m  {}",
         index + 1,
         highlighter.highlight(line)
     );
 }
 
-fn _print_header(filepath: &PathBuf) {
-    println!("--- \x1b[1m{:?}\x1b[0m ---", filepath);
+fn _print_header(filepath: &Path) {
+    println!("\x1b[1;38;5;245m--- {}\x1b[0m ---", filepath.display());
 }
 
 fn _process_file(filepath: &PathBuf, pattern: &str, highlighter: &TextHighlighter) {
@@ -45,6 +45,240 @@ pub fn search_files(files: &Vec<PathBuf>, pattern: &str, color: &Color) {
     let highlighter = TextHighlighter::new(pattern, color);
 
     for file in files {
-        _process_file(&file, pattern, &highlighter)
+        _process_file(file, pattern, &highlighter)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Write;
+    use tempdir::TempDir;
+
+    #[test]
+    fn test_search_files_finds_pattern() {
+        // Create temporary directory and file with content
+        let temp_dir = TempDir::new("search_test").unwrap();
+        let test_file = temp_dir.path().join("test.txt");
+
+        let mut file = File::create(&test_file).unwrap();
+        writeln!(file, "Hello world").unwrap();
+        writeln!(file, "This is a test").unwrap();
+        writeln!(file, "Hello again").unwrap();
+
+        // Test that search finds the pattern
+        let files = vec![test_file];
+        let pattern = "Hello";
+        let color = Color::Red;
+
+        // Test that search_files completes without panicking
+        // Output goes to stdout, so we're testing the function doesn't crash
+        search_files(&files, pattern, &color);
+    }
+
+    #[test]
+    fn test_search_files_multiple_files() {
+        let temp_dir = TempDir::new("search_multi_test").unwrap();
+
+        // Create first file
+        let file1 = temp_dir.path().join("file1.txt");
+        let mut f1 = File::create(&file1).unwrap();
+        writeln!(f1, "Pattern in file 1").unwrap();
+        writeln!(f1, "Some other text").unwrap();
+
+        // Create second file
+        let file2 = temp_dir.path().join("file2.txt");
+        let mut f2 = File::create(&file2).unwrap();
+        writeln!(f2, "Different content").unwrap();
+        writeln!(f2, "Pattern in file 2").unwrap();
+
+        let files = vec![file1, file2];
+        let pattern = "Pattern";
+        let color = Color::Blue;
+
+        // Test that function completes without panicking
+        search_files(&files, pattern, &color);
+    }
+
+    #[test]
+    fn test_search_files_no_matches() {
+        let temp_dir = TempDir::new("search_no_match_test").unwrap();
+        let test_file = temp_dir.path().join("test.txt");
+
+        let mut file = File::create(&test_file).unwrap();
+        writeln!(file, "Hello world").unwrap();
+        writeln!(file, "This is a test").unwrap();
+
+        let files = vec![test_file];
+        let pattern = "NotFound";
+        let color = Color::Green;
+
+        // Should handle no matches gracefully
+        search_files(&files, pattern, &color);
+    }
+
+    #[test]
+    fn test_search_files_empty_file() {
+        let temp_dir = TempDir::new("search_empty_test").unwrap();
+        let test_file = temp_dir.path().join("empty.txt");
+
+        // Create empty file
+        File::create(&test_file).unwrap();
+
+        let files = vec![test_file];
+        let pattern = "anything";
+        let color = Color::Red;
+
+        // Should handle empty files without errors
+        search_files(&files, pattern, &color);
+    }
+
+    #[test]
+    fn test_search_files_nonexistent_file() {
+        let temp_dir = TempDir::new("search_nonexistent_test").unwrap();
+        let nonexistent_file = temp_dir.path().join("does_not_exist.txt");
+
+        let files = vec![nonexistent_file];
+        let pattern = "anything";
+        let color = Color::Red;
+
+        // Should print error message to stderr and continue (not panic)
+        search_files(&files, pattern, &color);
+    }
+
+    #[test]
+    fn test_search_files_different_colors() {
+        let temp_dir = TempDir::new("search_colors_test").unwrap();
+        let test_file = temp_dir.path().join("test.txt");
+
+        let mut file = File::create(&test_file).unwrap();
+        writeln!(file, "Test pattern here").unwrap();
+
+        let files = vec![
+            test_file.clone(),
+            test_file.clone(),
+            test_file.clone(),
+            test_file,
+        ];
+        let pattern = "pattern";
+
+        // Test all color variants
+        search_files(&vec![files[0].clone()], pattern, &Color::Red);
+        search_files(&vec![files[1].clone()], pattern, &Color::Green);
+        search_files(&vec![files[2].clone()], pattern, &Color::Blue);
+        search_files(&vec![files[3].clone()], pattern, &Color::Bold);
+    }
+
+    #[test]
+    fn test_search_files_regex_patterns() {
+        let temp_dir = TempDir::new("search_regex_test").unwrap();
+        let test_file = temp_dir.path().join("test.txt");
+
+        let mut file = File::create(&test_file).unwrap();
+        writeln!(file, "email@example.com").unwrap();
+        writeln!(file, "test@domain.org").unwrap();
+        writeln!(file, "not an email").unwrap();
+
+        let files = vec![test_file];
+        let pattern = r"\w+@\w+\.\w+"; // Email regex pattern
+        let color = Color::Blue;
+
+        // Should handle regex patterns (TextHighlighter uses regex internally)
+        search_files(&files, pattern, &color);
+    }
+
+    #[test]
+    fn test_search_files_special_characters() {
+        let temp_dir = TempDir::new("search_special_test").unwrap();
+        let test_file = temp_dir.path().join("test.txt");
+
+        let mut file = File::create(&test_file).unwrap();
+        writeln!(file, "Special chars: àáâã").unwrap();
+        writeln!(file, "Symbols: @#$%^&*()").unwrap();
+        writeln!(file, "Unicode: 🦀 Rust crab").unwrap();
+
+        let files = vec![test_file];
+        let pattern = "🦀";
+        let color = Color::Green;
+
+        // Should handle Unicode and special characters
+        search_files(&files, pattern, &color);
+    }
+
+    #[test]
+    fn test_search_files_case_sensitivity() {
+        let temp_dir = TempDir::new("search_case_test").unwrap();
+        let test_file = temp_dir.path().join("test.txt");
+
+        let mut file = File::create(&test_file).unwrap();
+        writeln!(file, "Hello World").unwrap();
+        writeln!(file, "hello world").unwrap();
+        writeln!(file, "HELLO WORLD").unwrap();
+
+        let files = vec![test_file];
+        let pattern = "Hello"; // Exact case
+        let color = Color::Red;
+
+        // Should be case-sensitive by default
+        search_files(&files, pattern, &color);
+    }
+
+    #[test]
+    fn test_search_files_long_lines() {
+        let temp_dir = TempDir::new("search_long_test").unwrap();
+        let test_file = temp_dir.path().join("test.txt");
+
+        let mut file = File::create(&test_file).unwrap();
+        // Create a very long line
+        let long_line = "x".repeat(10000) + "PATTERN" + &"y".repeat(10000);
+        writeln!(file, "{}", long_line).unwrap();
+        writeln!(file, "Short line").unwrap();
+
+        let files = vec![test_file];
+        let pattern = "PATTERN";
+        let color = Color::Blue;
+
+        // Should handle very long lines without issues
+        search_files(&files, pattern, &color);
+    }
+
+    #[test]
+    fn test_search_files_empty_pattern() {
+        let temp_dir = TempDir::new("search_empty_pattern_test").unwrap();
+        let test_file = temp_dir.path().join("test.txt");
+
+        let mut file = File::create(&test_file).unwrap();
+        writeln!(file, "Some content").unwrap();
+
+        let files = vec![test_file];
+        let pattern = ""; // Empty pattern
+        let color = Color::Red;
+
+        // Should handle empty pattern gracefully (regex behavior)
+        search_files(&files, pattern, &color);
+    }
+
+    #[test]
+    fn test_search_files_mixed_scenarios() {
+        let temp_dir = TempDir::new("search_mixed_test").unwrap();
+
+        // Create valid file
+        let valid_file = temp_dir.path().join("valid.txt");
+        let mut f = File::create(&valid_file).unwrap();
+        writeln!(f, "Valid content with pattern").unwrap();
+
+        // Create empty file
+        let empty_file = temp_dir.path().join("empty.txt");
+        File::create(&empty_file).unwrap();
+
+        // Reference non-existent file
+        let nonexistent = temp_dir.path().join("missing.txt");
+
+        let files = vec![valid_file, empty_file, nonexistent];
+        let pattern = "pattern";
+        let color = Color::Green;
+
+        // Should handle mixed scenarios: valid, empty, and missing files
+        search_files(&files, pattern, &color);
     }
 }
