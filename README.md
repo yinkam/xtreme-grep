@@ -13,6 +13,7 @@ This project demonstrates comprehensive Rust development practices including mod
 ## Features
 
 ### Core Functionality
+
 - ✅ Pattern matching using regular expressions
 - ✅ Recursive directory traversal with symlink support
 - ✅ Colorized output with customizable colors (red, green, blue, bold)
@@ -21,6 +22,7 @@ This project demonstrates comprehensive Rust development practices including mod
 - ✅ Hidden file filtering (ignores files starting with '.')
 
 ### Development & Quality
+
 - ✅ **Comprehensive Testing**: 58 total tests across all modules
   - 36 library tests, 7 main tests, 11 integration tests, 12 individual module tests
 - ✅ **Optimized Dependencies**: Reduced binary size by 27% (2.6MB → 1.9MB)
@@ -34,8 +36,8 @@ This project demonstrates comprehensive Rust development practices including mod
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/yinkam/rust-grep.git
-   cd rust-grep
+   git clone https://github.com/yinkam/xtreme-grep.git
+   cd xtreme-grep
    ```
 
 2. Build the project:
@@ -62,16 +64,16 @@ make all         # Build, test, and create release
 
 ```bash
 # Search for a pattern in the current directory
-cargo run -- "pattern" .
+cargo run "pattern" .
 
 # Search for a pattern in a specific file
-cargo run -- "pattern" /path/to/file.txt
+cargo run "pattern" /path/to/file.txt
 
 # Search for a pattern in a specific directory
-cargo run -- "pattern" /path/to/directory
+cargo run "pattern" /path/to/directory
 
 # Use custom colors for highlighting (red, green, blue, bold)
-cargo run -- --color green "pattern" .
+cargo run --color green "pattern" .
 
 # Or use the built binary directly
 ./target/release/xgrep "pattern" /path/to/search
@@ -81,13 +83,13 @@ cargo run -- --color green "pattern" .
 
 ```bash
 # Find all "use" statements in source files
-cargo run -- "use" src/
+cargo run "use" src/
 
 # Search for function definitions with blue highlighting
-cargo run -- --color blue "fn " src/
+cargo run --color blue "fn " src/
 
 # Search for TODO comments with bold highlighting
-cargo run -- --color bold "TODO" .
+cargo run --color bold "TODO" .
 ```
 
 ## Architecture
@@ -138,7 +140,7 @@ make test
 cargo test
 
 # Run with verbose output
-cargo test -- --nocapture
+cargo test --nocapture
 
 # Run specific test modules
 cargo test search::tests
@@ -157,13 +159,13 @@ cargo test integration_tests
 
 ```bash
 # Test basic functionality
-echo "Hello World\nRust is great" | cargo run -- "Rust"
+echo "Hello World\nRust is great" | cargo run "Rust"
 
 # Test with different colors
-cargo run -- --color green "fn" src/
+cargo run --color green "fn" src/
 
 # Test error handling with non-existent files
-cargo run -- "pattern" /non/existent/path
+cargo run "pattern" /non/existent/path
 ```
 
 ## Dependencies
@@ -176,7 +178,7 @@ Carefully optimized dependencies for minimal binary size and maximum performance
 |-------|---------|----------|---------|
 | `clap` | 4.5.50 | `derive`, `std`, `help`, `usage` | CLI argument parsing |
 | `regex` | 1.12.2 | `std`, `perf`, `unicode-perl` | Pattern matching engine |
-| `walkdir` | 2.5.0 | _(default)_ | Directory traversal |
+| `walkdir` | 2.5.0 | *default* | Directory traversal |
 
 ### Development Dependencies
 
@@ -221,16 +223,19 @@ The current implementation provides a solid foundation for advanced features:
 ### Planned Features
 
 #### Color Control
+
 - **Auto-Color Detection**: Color **ON** for terminal, **OFF** when piped
 - **Manual Override**: `--color` (force on) and `--no-color` (force off) flags
 - **CLI Standards**: Follows Unix conventions for output handling
 
 #### Silent Mode
+
 - **Quiet Operation**: `-s` / `--silent` flag suppresses all **stderr** messages
 - **Error Suppression**: Including permission denied and file access errors  
 - **UX-Friendly**: Simple way for users to eliminate noise
 
 #### Advanced Pattern Features
+
 - **Negative Patterns**: Exclude matches with `-v` / `--invert-match` flag
 - **Multi-pattern Support**: Search for multiple patterns simultaneously
 - **Case Insensitive**: `-i` / `--ignore-case` flag for case-insensitive matching
