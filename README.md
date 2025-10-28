@@ -2,13 +2,13 @@
 
 *This repository is part of [Pragmatic AI Labs Rust Bootcamp](https://ds500.paiml.com/bootcamps/rust)*
 
-A fast, colorized grep implementation written in Rust that searches for patterns in files and directories with syntax highlighting. Features comprehensive testing, CI/CD pipeline, and optimized dependencies for production use.
+A fast, colorized grep implementation written in Rust that searches for patterns in files and directories with syntax highlighting. Features comprehensive testing and optimized dependencies for production use.
 
 ## Overview
 
 XGrep is a command-line text search tool that mimics the functionality of the Unix `grep` command. It recursively searches through files and directories for specified patterns using regular expressions, with the added benefit of colorized output to highlight matches.
 
-This project demonstrates comprehensive Rust development practices including modular code organization, error handling, command-line argument parsing, file system traversal, extensive testing (58 tests), CI/CD automation, and dependency optimization.
+This project demonstrates comprehensive Rust development practices including modular code organization, error handling, command-line argument parsing, file system traversal, and extensive testing (58 tests).
 
 ## Features
 
@@ -17,15 +17,12 @@ This project demonstrates comprehensive Rust development practices including mod
 - ✅ Recursive directory traversal with symlink support
 - ✅ Colorized output with customizable colors (red, green, blue, bold)
 - ✅ Command-line interface with clap derive macros
-- ✅ Robust error handling for file operations
 - ✅ Support for both single files and directories
 - ✅ Hidden file filtering (ignores files starting with '.')
-- ✅ Cross-platform compatibility (Windows, macOS, Linux)
 
 ### Development & Quality
 - ✅ **Comprehensive Testing**: 58 total tests across all modules
   - 36 library tests, 7 main tests, 11 integration tests, 12 individual module tests
-- ✅ **CI/CD Pipeline**: Automated GitHub Actions for multi-platform builds
 - ✅ **Optimized Dependencies**: Reduced binary size by 27% (2.6MB → 1.9MB)
 - ✅ **Build Automation**: Simplified Makefile with 7 essential commands
 - ✅ **Integration Testing**: Full CLI testing using external binary execution
@@ -110,16 +107,13 @@ The project follows a modular architecture with clear separation of concerns:
 
 - **Unit Tests**: 47 focused unit tests across all modules
 - **Integration Tests**: 11 comprehensive CLI tests using external binary execution
-- **CI/CD**: GitHub Actions pipeline for automated testing and releases
 - **Dependency Optimization**: Minimal feature flags reducing binary size by 27%
 
 ### Key Design Decisions
 
-- **Flexible APIs**: Functions accept `&Path` instead of `&PathBuf` for broader compatibility
-- **Result-based Error Handling**: Comprehensive error propagation without panics
 - **Regex Power**: Uses `regex` crate with optimized features for pattern matching
 - **Memory Efficiency**: Line-by-line processing handles files of any size
-- **Cross-platform**: Thoroughly tested on Windows, macOS, and Linux via CI
+- **Modular Architecture**: Clean separation of concerns across focused modules
 
 ## Testing
 
@@ -127,10 +121,13 @@ XGrep features comprehensive testing with **58 total tests** ensuring reliabilit
 
 ### Test Suite Breakdown
 
-- **Library Tests (36)**: Core functionality in `lib.rs`
-- **Main Tests (7)**: CLI argument parsing and path resolution
-- **Integration Tests (11)**: Full CLI testing using external binary execution
-- **Module Tests (12)**: Individual component testing (colors, highlighter, search, crawler)
+| Test Type | Count | Coverage |
+|-----------|-------|----------|
+| Library Tests | 36 | Core functionality in `lib.rs` |
+| Main Tests | 7 | CLI argument parsing and path resolution |
+| Integration Tests | 11 | Full CLI testing using external binary execution |
+| Module Tests | 12 | Individual component testing (colors, highlighter, search, crawler) |
+| **Total** | **58** | **Comprehensive reliability testing** |
 
 ### Running Tests
 
@@ -154,7 +151,7 @@ cargo test integration_tests
 - **Integration Tests**: End-to-end CLI functionality with real file operations
 - **Error Handling**: Graceful handling of missing files, permissions, invalid patterns
 - **Performance**: Large files, long lines, Unicode content
-- **Cross-platform**: Automated testing on Windows, macOS, and Linux
+- **Comprehensive Coverage**: Unit tests, integration tests, and error handling scenarios
 
 ### Manual Testing
 
@@ -175,13 +172,17 @@ Carefully optimized dependencies for minimal binary size and maximum performance
 
 ### Production Dependencies
 
-- **`clap = "4.5.50"`** - CLI parsing with minimal features: `["derive", "std", "help", "usage"]`
-- **`regex = "1.12.2"`** - Pattern matching with optimized features: `["std", "perf", "unicode-perl"]`
-- **`walkdir = "2.5.0"`** - Recursive directory traversal (already minimal)
+| Crate | Version | Features | Purpose |
+|-------|---------|----------|---------|
+| `clap` | 4.5.50 | `derive`, `std`, `help`, `usage` | CLI argument parsing |
+| `regex` | 1.12.2 | `std`, `perf`, `unicode-perl` | Pattern matching engine |
+| `walkdir` | 2.5.0 | _(default)_ | Directory traversal |
 
 ### Development Dependencies
 
-- **`tempdir = "0.3.7"`** - Temporary directories for comprehensive testing
+| Crate | Version | Purpose |
+|-------|---------|---------|
+| `tempdir` | 0.3.7 | Temporary directories for testing |
 
 ### Optimization Results
 
@@ -206,40 +207,33 @@ XGrep is optimized for both speed and memory efficiency:
 - **Minimal Allocations**: Reuses buffers and compiled regex patterns
 - **Optimized Binary**: Small deployment footprint (1.9MB) for fast distribution
 
-## CI/CD Pipeline
-
-Automated quality assurance and releases via GitHub Actions:
-
-### Continuous Integration
-
-- **Multi-platform Testing**: Automated testing on Ubuntu, macOS, and Windows
-- **Rust Version Matrix**: Tests against stable and latest Rust versions
-- **Comprehensive Coverage**: All 58 tests run on every push and pull request
-- **Build Verification**: Release builds tested on all target platforms
-
-### Automated Releases
-
-- **Binary Artifacts**: Pre-built binaries for all major platforms
-- **Semantic Versioning**: Automated tagging and release notes
-- **Distribution Ready**: Optimized release binaries (1.9MB) ready for deployment
-
 ## Future Enhancements
 
 The current implementation provides a solid foundation for advanced features:
 
-### Phase Two - Async Implementation
+### Phase Two - Parallel Processing with Rayon
 
-- **Parallel File Processing**: Tokio-based async/await for concurrent file reading
-- **Producer-Consumer Pattern**: Async channels for scalable directory traversal
+- **Parallel File Processing**: Process multiple files simultaneously for faster searches
+- **Multi-core Utilization**: Efficiently use available CPU cores while keeping system responsive
 - **Performance Multiplier**: Significant speed improvements for large codebases
-- **Resource Management**: Configurable concurrency limits and memory usage
+- **Smart Scaling**: Optimal performance regardless of file count or size distribution
 
 ### Planned Features
 
-- **Configuration Files**: `.xgreprc` support for default settings
-- **Output Formats**: JSON, XML output options for tooling integration
-- **Advanced Patterns**: Negative patterns, multi-pattern searches
-- **Performance Metrics**: Built-in timing and statistics reporting
+#### Color Control
+- **Auto-Color Detection**: Color **ON** for terminal, **OFF** when piped
+- **Manual Override**: `--color` (force on) and `--no-color` (force off) flags
+- **CLI Standards**: Follows Unix conventions for output handling
+
+#### Silent Mode
+- **Quiet Operation**: `-s` / `--silent` flag suppresses all **stderr** messages
+- **Error Suppression**: Including permission denied and file access errors  
+- **UX-Friendly**: Simple way for users to eliminate noise
+
+#### Advanced Pattern Features
+- **Negative Patterns**: Exclude matches with `-v` / `--invert-match` flag
+- **Multi-pattern Support**: Search for multiple patterns simultaneously
+- **Case Insensitive**: `-i` / `--ignore-case` flag for case-insensitive matching
 
 ## Contributing
 
