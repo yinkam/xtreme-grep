@@ -64,14 +64,14 @@ mod tests {
         ];
         for (color_str, _expected_color) in colors_list {
             let color = Color::from_str(color_str);
-            assert!(matches!(color, Some(_expected_color)));
+            assert!(color.is_some());
         }
     }
 
     #[test]
     fn test_from_str_invalid_color() {
         let color = Color::from_str("invalid");
-        assert!(matches!(color, None));
+        assert!(color.is_none());
     }
 
     #[test]
@@ -83,14 +83,14 @@ mod tests {
         ];
         for (color_str, _expected_color) in color_cases {
             let color = Color::from_str(color_str);
-            assert!(matches!(color, Some(_expected_color)));
+            assert!(color.is_some());
         }
     }
 
     #[test]
     fn test_from_str_empty_string() {
         let color = Color::from_str("");
-        assert!(matches!(color, None));
+        assert!(color.is_none());
     }
 
     #[test]
