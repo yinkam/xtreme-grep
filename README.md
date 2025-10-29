@@ -126,7 +126,7 @@ XGrep uses a sophisticated parallel processing architecture that prioritizes bot
 
 ### Architecture Overview
 
-```
+```text
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
 │   Main Thread   │    │  Worker Threads  │    │  Output Thread  │
 │                 │    │                  │    │                 │
@@ -155,18 +155,21 @@ Three implementation approaches were considered:
 | **Ordered Collection** ❌ | Files in original order | Slow (wait for all) | High (buffering) | Low (simple collect) |
 
 ### **✅ Chosen: File-by-File Streaming**
+
 - **Grouped Output**: Matches organized by file with clear headers
 - **Fast Feedback**: Results appear as each file completes
 - **Clean Presentation**: No interleaved matches from different files
 - **Balanced Trade-off**: Good performance with readable output
 
 ### **❌ Rejected: Line-by-Line Streaming**
+
 - **Immediate Response**: Each match sent instantly via channel
 - **Scattered Output**: Lines from different files mixed together
 - **Poor Readability**: Hard to see which matches belong to which files
 - **Complex Coordination**: Would need file headers and match grouping logic
 
 ### **❌ Rejected: Ordered Collection**
+
 - **Predictable Order**: Files processed in input sequence
 - **Delayed Results**: Must wait for all files before any output
 - **Higher Memory**: Buffering all matches before printing
@@ -194,6 +197,7 @@ pub enum OutputMessage {
 ### Alternative Implementation
 
 A synchronous version (`search_sync.rs`) is maintained for reference, providing:
+
 - **Ordered Output**: Files processed and displayed in predictable sequence
 - **Line-by-line Streaming**: Results appear as each line is found (not file-by-file)
 - **Simpler Architecture**: Direct printing without channels or threading complexity
