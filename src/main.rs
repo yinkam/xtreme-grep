@@ -1,4 +1,6 @@
 use clap::Parser;
+use num_cpus;
+use rayon::ThreadPoolBuilder;
 use std::env::current_dir;
 use std::fs::canonicalize;
 use std::path::{Path, PathBuf};
@@ -24,6 +26,13 @@ struct Cli {
 }
 
 fn main() {
+    let cores = num_cpus::get();
+    let num_threads = std::cmp::max(1, cores - 1);
+    ThreadPoolBuilder::new()
+        .num_threads(num_threads)
+        .build_global()
+        .unwrap();
+
     let cli = Cli::parse();
 
     if cli.path.is_none() && Path::new(&cli.pattern).exists() {

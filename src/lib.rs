@@ -1,16 +1,21 @@
 pub mod colors;
 pub mod crawler;
 pub mod highlighter;
+pub mod output;
 pub mod search;
+pub mod search_sync;
 
 use colors::Color;
 use crawler::get_files;
+use output::print_output;
 use search::search_files;
 use std::path::PathBuf;
 
 pub fn run(dir: &PathBuf, pattern: &str, color: &Color) {
     let files = get_files(dir);
-    search_files(&files, pattern, color);
+    let rx = search_files(&files, pattern, color);
+
+    print_output(rx);
 }
 
 #[cfg(test)]

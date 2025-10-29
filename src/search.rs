@@ -1,52 +1,80 @@
 use crate::colors::Color;
 use crate::highlighter::TextHighlighter;
+use crate::output::{FileMatchResult, OutputMessage};
+use rayon::scope;
 use std::fs::File;
-use std::io::{BufRead, BufReader};
-use std::path::{Path, PathBuf};
+use std::io::{BufRead, BufReader, Result};
+use std::path::PathBuf;
+use std::sync::mpsc;
 
-fn _print_line(index: usize, line: &str, highlighter: &TextHighlighter) {
-    println!(
-        "  \x1b[1;38;5;245m{:>3}:\x1b[0m  {}",
-        index + 1,
-        highlighter.highlight(line)
-    );
-}
+fn _process_file(
+    filepath: &PathBuf,
+    pattern: &str,
+    highlighter: &TextHighlighter,
+) -> Result<FileMatchResult> {
+    let mut messages = Vec::new();
+    messages.push(OutputMessage::Header(filepath.to_path_buf()));
 
-fn _print_header(filepath: &Path) {
-    println!("\x1b[1;38;5;245m--- {}\x1b[0m ---", filepath.display());
-}
-
-fn _process_file(filepath: &PathBuf, pattern: &str, highlighter: &TextHighlighter) {
     let file = File::open(filepath);
     let reader = BufReader::new(match file {
         Ok(f) => f,
         Err(e) => {
-            eprintln!("Error opening file: {}", e);
-            return;
+            let err_msg = format!("Failed to open file {}: {}", filepath.display(), e);
+            messages.push(OutputMessage::Error(err_msg));
+            return Ok(messages);
         }
     });
 
-    _print_header(filepath);
     for (index, line) in reader.lines().enumerate() {
         let line = match line {
             Ok(l) => l,
             Err(_e) => {
-                // suppress line read errors for cleaner output
+                // suppress line read errors since they are not critical
                 continue;
             }
         };
         if line.contains(pattern) {
-            _print_line(index, &line, highlighter);
+            let line_msg = OutputMessage::Line {
+                index,
+                content: highlighter.highlight(&line),
+            };
+            messages.push(line_msg);
         }
     }
+
+    messages.push(OutputMessage::Done);
+    Ok(messages)
 }
 
-pub fn search_files(files: &Vec<PathBuf>, pattern: &str, color: &Color) {
+pub fn search_files(
+    files: &[PathBuf],
+    pattern: &str,
+    color: &Color,
+) -> mpsc::Receiver<FileMatchResult> {
+    let (tx, rx) = mpsc::channel();
     let highlighter = TextHighlighter::new(pattern, color);
 
-    for file in files {
-        _process_file(file, pattern, &highlighter)
-    }
+    scope(|s| {
+        for file in files {
+            let _tx = tx.clone();
+            let _highlighter = &highlighter;
+            let _pattern = pattern;
+            let _file = file.clone();
+
+            s.spawn(move |_| {
+                let messages = match _process_file(&_file, _pattern, &_highlighter) {
+                    Ok(msg) => msg,
+                    Err(e) => {
+                        let err_msg = format!("Error processing file {}: {}", _file.display(), e);
+                        vec![OutputMessage::Error(err_msg)]
+                    }
+                };
+                _tx.send(messages).ok();
+            });
+        }
+    });
+
+    rx
 }
 
 #[cfg(test)]
