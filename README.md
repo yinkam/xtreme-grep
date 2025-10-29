@@ -127,14 +127,14 @@ XGrep uses a sophisticated parallel processing architecture that prioritizes bot
 ### Architecture Overview
 
 ```text
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Main Thread   │    │  Worker Threads  │    │  Output Thread  │
-│                 │    │                  │    │                 │
-│ 1. Discover     │    │ 3. Process files │    │ 5. Print results│
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│   Main Thread   │     │  Worker Threads  │     │  Output Thread  │
+│                 │     │                  │     │                 │
+│ 1. Discover     │     │ 3. Process files │     │ 5. Print results│
 │    files        │────▶│    in parallel   │────▶│    sequentially │
-│ 2. Setup thread │    │ 4. Send results  │    │ 6. Handle errors│
-│    pool         │    │    via channel   │    │                 │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
+│ 2. Setup thread │     │ 4. Send results  │     │ 6. Handle errors│
+│    pool         │     │    via channel   │     │                 │
+└─────────────────┘     └──────────────────┘     └─────────────────┘
 ```
 
 ### Thread Pool Configuration
