@@ -2,27 +2,29 @@
 
 *This repository is part of [Pragmatic AI Labs Rust Bootcamp](https://ds500.paiml.com/bootcamps/rust)*
 
-A fast, colorized grep implementation written in Rust that searches for patterns in files and directories with syntax highlighting. Features comprehensive testing and optimized dependencies for production use.
+A fast, parallel grep implementation written in Rust that searches for patterns in files and directories with syntax highlighting. Features multi-core processing, comprehensive testing, and optimized dependencies for production use.
 
 ## Overview
 
 XGrep is a command-line text search tool that mimics the functionality of the Unix `grep` command. It recursively searches through files and directories for specified patterns using regular expressions, with the added benefit of colorized output to highlight matches.
 
-This project demonstrates comprehensive Rust development practices including modular code organization, error handling, command-line argument parsing, file system traversal, and extensive testing (58 tests).
+This project demonstrates comprehensive Rust development practices including modular code organization, parallel processing with Rayon, error handling, command-line argument parsing, file system traversal, and extensive testing (58 tests).
 
 ## Features
 
 ### Core Functionality
 
-- ✅ Pattern matching using regular expressions
-- ✅ Recursive directory traversal with symlink support
-- ✅ Colorized output with customizable colors (red, green, blue, bold)
-- ✅ Command-line interface with clap derive macros
-- ✅ Support for both single files and directories
-- ✅ Hidden file filtering (ignores files starting with '.')
+- ✅ **Parallel Processing**: Multi-core file processing with intelligent thread pool management
+- ✅ **Pattern Matching**: Regular expression engine with optimized performance features
+- ✅ **Streaming Results**: Real-time output as matches are discovered, grouped by file
+- ✅ **Directory Traversal**: Recursive scanning with symlink support and hidden file filtering
+- ✅ **Colorized Output**: Customizable syntax highlighting (red, green, blue, bold)
+- ✅ **Flexible Input**: Support for both single files and directory trees
+- ✅ **Smart Threading**: Automatic CPU core detection with system responsiveness (`cores - 1`)
 
 ### Development & Quality
 
+- ✅ **Parallel Processing**: Multi-core file processing with Rayon for significant performance gains
 - ✅ **Comprehensive Testing**: 58 total tests across all modules
   - 36 library tests, 7 main tests, 11 integration tests, 12 individual module tests
 - ✅ **Optimized Dependencies**: Reduced binary size by 27% (2.6MB → 1.9MB)
@@ -113,9 +115,88 @@ The project follows a modular architecture with clear separation of concerns:
 
 ### Key Design Decisions
 
+- **Parallel Processing**: Rayon-based multi-threading with channel communication for streaming results
 - **Regex Power**: Uses `regex` crate with optimized features for pattern matching
 - **Memory Efficiency**: Line-by-line processing handles files of any size
 - **Modular Architecture**: Clean separation of concerns across focused modules
+
+## Parallel Processing Implementation
+
+XGrep uses a sophisticated parallel processing architecture that prioritizes both performance and user experience:
+
+### Architecture Overview
+
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   Main Thread   │    │  Worker Threads  │    │  Output Thread  │
+│                 │    │                  │    │                 │
+│ 1. Discover     │    │ 3. Process files │    │ 5. Print results│
+│    files        │────▶│    in parallel   │────▶│    sequentially │
+│ 2. Setup thread │    │ 4. Send results  │    │ 6. Handle errors│
+│    pool         │    │    via channel   │    │                 │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+```
+
+### Thread Pool Configuration
+
+- **CPU Detection**: Uses `num_cpus` to detect available cores
+- **Smart Sizing**: Thread pool = `max(1, cores - 1)` to keep system responsive
+- **Global Pool**: Rayon's `ThreadPoolBuilder` creates one pool for entire application
+- **Bounded Parallelism**: `rayon::scope` ensures all threads complete before returning
+
+### Parallel Processing Trade-offs
+
+Three implementation approaches were considered:
+
+| Approach | Output Order | Responsiveness | Memory Usage | Implementation Complexity |
+|----------|--------------|----------------|--------------|---------------------------|
+| **Line-by-Line Streaming** ❌ | Scattered matches across files | Immediate (fastest) | Lowest | High (complex coordination) |
+| **File-by-File Streaming** ✅ | Files in completion order | Fast (file-level batching) | Low | Medium (channel messaging) |
+| **Ordered Collection** ❌ | Files in original order | Slow (wait for all) | High (buffering) | Low (simple collect) |
+
+### **✅ Chosen: File-by-File Streaming**
+- **Grouped Output**: Matches organized by file with clear headers
+- **Fast Feedback**: Results appear as each file completes
+- **Clean Presentation**: No interleaved matches from different files
+- **Balanced Trade-off**: Good performance with readable output
+
+### **❌ Rejected: Line-by-Line Streaming**
+- **Immediate Response**: Each match sent instantly via channel
+- **Scattered Output**: Lines from different files mixed together
+- **Poor Readability**: Hard to see which matches belong to which files
+- **Complex Coordination**: Would need file headers and match grouping logic
+
+### **❌ Rejected: Ordered Collection**
+- **Predictable Order**: Files processed in input sequence
+- **Delayed Results**: Must wait for all files before any output
+- **Higher Memory**: Buffering all matches before printing
+- **Less Interactive**: No progress indication during processing
+
+### Message Architecture
+
+```rust
+pub enum OutputMessage {
+    Header(PathBuf),              // File separator
+    Line { index: usize, content: String }, // Match with highlighting
+    Error(String),                // Graceful error handling
+    Done,                        // Completion marker
+}
+```
+
+### Benefits Achieved
+
+- **🚀 Speed**: Multi-core utilization without system lock-up
+- **⚡ Responsiveness**: Immediate streaming results  
+- **🛡️ Reliability**: Graceful error handling per file
+- **📊 Scalability**: Efficient for both small and large codebases
+- **🔧 Maintainability**: Clean separation of parallel work and output formatting
+
+### Alternative Implementation
+
+A synchronous version (`search_sync.rs`) is maintained for reference, providing:
+- **Ordered Output**: Files processed and displayed in predictable sequence
+- **Line-by-line Streaming**: Results appear as each line is found (not file-by-file)
+- **Simpler Architecture**: Direct printing without channels or threading complexity
 
 ## Testing
 
@@ -177,6 +258,8 @@ Carefully optimized dependencies for minimal binary size and maximum performance
 | Crate | Version | Features | Purpose |
 |-------|---------|----------|---------|
 | `clap` | 4.5.50 | `derive`, `std`, `help`, `usage` | CLI argument parsing |
+| `num_cpus` | 1.17.0 | *default* | CPU core detection for thread pool sizing |
+| `rayon` | 1.11.0 | *default* | Parallel processing and thread pool management |
 | `regex` | 1.12.2 | `std`, `perf`, `unicode-perl` | Pattern matching engine |
 | `walkdir` | 2.5.0 | *default* | Directory traversal |
 
@@ -194,31 +277,38 @@ Carefully optimized dependencies for minimal binary size and maximum performance
 
 ## Performance
 
-XGrep is optimized for both speed and memory efficiency:
+XGrep delivers exceptional performance through parallel processing and memory-efficient design:
 
-### Runtime Performance
+### Parallel Processing Performance
 
-- **Buffered I/O**: Efficient file reading with `BufReader`
-- **Lazy Evaluation**: Files processed only when pattern matches are found
-- **Hidden File Filtering**: Avoids unnecessary traversal of dot files
-- **Regex Compilation**: Pattern compiled once and reused across all files
+- **Multi-core Utilization**: Efficiently uses available CPU cores while keeping system responsive
+- **Concurrent File Processing**: Multiple files processed simultaneously using Rayon's work-stealing scheduler  
+- **Immediate Results**: Streaming output provides instant feedback as matches are found
+- **Scalable Architecture**: Performance scales with both file count and available CPU cores
+
+### Runtime Optimizations
+
+- **Smart Thread Pool**: `cores - 1` threads prevent system lock-up while maximizing performance
+- **Buffered I/O**: Efficient file reading with `BufReader` for optimal disk access patterns
+- **Hidden File Filtering**: Avoids unnecessary traversal of dot files during directory scanning
+- **Regex Compilation**: Pattern compiled once per thread and reused across all files
 
 ### Memory Efficiency
 
 - **Line-by-line Processing**: Handles files of any size without loading into memory
-- **Minimal Allocations**: Reuses buffers and compiled regex patterns
-- **Optimized Binary**: Small deployment footprint (1.9MB) for fast distribution
+- **Channel-based Communication**: Minimal memory overhead for inter-thread messaging
+- **Minimal Allocations**: Reuses buffers and compiled regex patterns within threads
+- **Optimized Binary**: Small deployment footprint (2.3MB) for fast distribution
+
+### Performance Characteristics
+
+- **Best Case**: Large codebases with many files - see dramatic speedup from parallelization
+- **Typical Case**: Mixed file sizes - faster files provide immediate feedback while larger files process
+- **Worst Case**: Single large file - still benefits from optimized I/O and regex processing
 
 ## Future Enhancements
 
-The current implementation provides a solid foundation for advanced features:
-
-### Phase Two - Parallel Processing with Rayon
-
-- **Parallel File Processing**: Process multiple files simultaneously for faster searches
-- **Multi-core Utilization**: Efficiently use available CPU cores while keeping system responsive
-- **Performance Multiplier**: Significant speed improvements for large codebases
-- **Smart Scaling**: Optimal performance regardless of file count or size distribution
+The current parallel implementation provides a solid foundation for additional features:
 
 ### Planned Features
 
@@ -254,4 +344,4 @@ This project is open source and available under the MIT License.
 
 *Built during the [Pragmatic AI Labs Rust Bootcamp](https://github.com/paiml/ds500-rust-bootcamp)*
 
-**Project Status**: ✅ **Foundation Complete** - Ready for async implementation phase
+**Project Status**: ✅ **Parallel Implementation Complete** - High-performance multi-core grep with streaming results
