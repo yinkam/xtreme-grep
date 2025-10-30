@@ -21,8 +21,8 @@
 //! ## Example
 //!
 //! ```no_run
-//! use xgrep::search::search_files;
-//! use xgrep::colors::Color;
+//! use xerg::search::search_files;
+//! use xerg::colors::Color;
 //! use std::path::PathBuf;
 //!
 //! let files = vec![PathBuf::from("src/main.rs")];

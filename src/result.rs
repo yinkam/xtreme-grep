@@ -32,7 +32,7 @@
 //! ## Example
 //!
 //! ```no_run
-//! use xgrep::result::{print_result, ResultMessage};
+//! use xerg::result::{print_result, ResultMessage};
 //! use std::sync::mpsc;
 //!
 //! let (tx, rx) = mpsc::channel();

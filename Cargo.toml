@@ -1,7 +1,20 @@
 [package]
-name = "xgrep"
+name = "xerg"
 version = "0.1.0"
 edition = "2024"
+authors = ["yinkam <5328632+yinkam@users.noreply.github.com>"]
+description = "A fast, parallel grep implementation in Rust with syntax highlighting and detailed search statistics"
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+homepage = "https://github.com/yinkam/xtreme-grep"
+repository = "https://github.com/yinkam/xtreme-grep"
+keywords = ["grep", "search", "parallel", "cli", "text"]
+categories = ["command-line-utilities", "text-processing"]
+documentation = "https://docs.rs/xerg"
+
+[[bin]]
+name = "xerg"
+path = "src/main.rs"
 
 [dependencies]
 clap = { version = "4.5.50", default-features = false, features = ["derive", "std", "help", "usage"]  }

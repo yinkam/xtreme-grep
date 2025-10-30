@@ -3,7 +3,7 @@ use rayon::ThreadPoolBuilder;
 use std::env::current_dir;
 use std::fs::canonicalize;
 use std::path::{Path, PathBuf};
-use xgrep::{colors::Color, run};
+use xerg::{colors::Color, run};
 
 fn resolve_path(path: Option<PathBuf>) -> Result<PathBuf, std::io::Error> {
     let final_path = match path {

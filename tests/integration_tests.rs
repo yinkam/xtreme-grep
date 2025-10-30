@@ -2,16 +2,16 @@ use std::fs::{self, File};
 use std::io::Write;
 use std::process::Command;
 use tempdir::TempDir;
-use xgrep::colors::Color;
-use xgrep::highlighter::TextHighlighter;
+use xerg::colors::Color;
+use xerg::highlighter::TextHighlighter;
 
-/// Helper function to run xgrep command and capture output
-fn run_xgrep(args: &[&str]) -> (String, String, i32) {
+/// Helper function to run xerg command and capture output
+fn run_xerg(args: &[&str]) -> (String, String, i32) {
     let output = Command::new("cargo")
         .args(&["run", "--quiet", "--"])
         .args(args)
         .output()
-        .expect("Failed to execute xgrep");
+        .expect("Failed to execute xerg");
 
     let stdout = String::from_utf8(output.stdout).unwrap();
     let stderr = String::from_utf8(output.stderr).unwrap();
@@ -54,7 +54,7 @@ fn test_basic_search() {
     let temp_dir = TempDir::new("integration_test").unwrap();
     let test_dir = create_test_files(&temp_dir);
 
-    let (stdout, stderr, exit_code) = run_xgrep(&["Hello", test_dir.to_str().unwrap()]);
+    let (stdout, stderr, exit_code) = run_xerg(&["Hello", test_dir.to_str().unwrap()]);
 
     assert_eq!(exit_code, 0);
     assert!(stderr.is_empty());
@@ -80,8 +80,7 @@ fn test_no_matches() {
     let temp_dir = TempDir::new("integration_test").unwrap();
     let test_dir = create_test_files(&temp_dir);
 
-    let (stdout, stderr, exit_code) =
-        run_xgrep(&["NonexistentPattern", test_dir.to_str().unwrap()]);
+    let (stdout, stderr, exit_code) = run_xerg(&["NonexistentPattern", test_dir.to_str().unwrap()]);
 
     assert_eq!(exit_code, 0);
     assert!(stderr.is_empty());
@@ -96,7 +95,7 @@ fn test_single_file_search() {
     let test_dir = create_test_files(&temp_dir);
     let file_path = test_dir.join("file1.txt");
 
-    let (stdout, stderr, exit_code) = run_xgrep(&["test", file_path.to_str().unwrap()]);
+    let (stdout, stderr, exit_code) = run_xerg(&["test", file_path.to_str().unwrap()]);
 
     assert_eq!(exit_code, 0);
     assert!(stderr.is_empty());
@@ -116,7 +115,7 @@ fn test_color_option() {
     let test_dir = create_test_files(&temp_dir);
 
     let (stdout, stderr, exit_code) =
-        run_xgrep(&["Hello", test_dir.to_str().unwrap(), "--color", "green"]);
+        run_xerg(&["Hello", test_dir.to_str().unwrap(), "--color", "green"]);
 
     assert_eq!(exit_code, 0);
     assert!(stderr.is_empty());
@@ -130,7 +129,7 @@ fn test_invalid_color_warning() {
     let temp_dir = TempDir::new("integration_test").unwrap();
     let test_dir = create_test_files(&temp_dir);
 
-    let (stdout, stderr, exit_code) = run_xgrep(&[
+    let (stdout, stderr, exit_code) = run_xerg(&[
         "Hello",
         test_dir.to_str().unwrap(),
         "--color",
@@ -148,7 +147,7 @@ fn test_invalid_color_warning() {
 
 #[test]
 fn test_nonexistent_directory() {
-    let (stdout, stderr, exit_code) = run_xgrep(&["pattern", "/nonexistent/directory"]);
+    let (stdout, stderr, exit_code) = run_xerg(&["pattern", "/nonexistent/directory"]);
 
     assert_eq!(exit_code, 1);
     assert!(stderr.contains("error: file or directory does not exist"));
@@ -157,22 +156,22 @@ fn test_nonexistent_directory() {
 
 #[test]
 fn test_help_option() {
-    let (stdout, stderr, exit_code) = run_xgrep(&["--help"]);
+    let (stdout, stderr, exit_code) = run_xerg(&["--help"]);
 
     assert_eq!(exit_code, 0);
     assert!(stderr.is_empty());
     assert!(stdout.contains("Usage:"));
-    assert!(stdout.contains("xgrep"));
+    assert!(stdout.contains("xerg"));
     assert!(stdout.contains("PATTERN"));
 }
 
 #[test]
 fn test_version_option() {
-    let (stdout, stderr, exit_code) = run_xgrep(&["--version"]);
+    let (stdout, stderr, exit_code) = run_xerg(&["--version"]);
 
     assert_eq!(exit_code, 0);
     assert!(stderr.is_empty());
-    assert!(stdout.contains("xgrep"));
+    assert!(stdout.contains("xerg"));
     assert!(stdout.contains("0.1.0"));
 }
 
@@ -182,7 +181,7 @@ fn test_literal_patterns() {
     let test_dir = create_test_files(&temp_dir);
 
     // Test with a literal pattern that will match
-    let (stdout, stderr, exit_code) = run_xgrep(&["fn main", test_dir.to_str().unwrap()]);
+    let (stdout, stderr, exit_code) = run_xerg(&["fn main", test_dir.to_str().unwrap()]);
 
     assert_eq!(exit_code, 0);
     assert!(stderr.is_empty());
@@ -200,7 +199,7 @@ fn test_case_sensitivity() {
     let test_dir = create_test_files(&temp_dir);
 
     // Test lowercase search - should find no matches since we search for "hello" but files contain "Hello"
-    let (stdout, stderr, exit_code) = run_xgrep(&["hello", test_dir.to_str().unwrap()]);
+    let (stdout, stderr, exit_code) = run_xerg(&["hello", test_dir.to_str().unwrap()]);
 
     assert_eq!(exit_code, 0);
     assert!(stderr.is_empty());
@@ -215,7 +214,7 @@ fn test_missing_pattern_error() {
     let test_dir = create_test_files(&temp_dir);
 
     // Try to run with just a path (no pattern)
-    let (stdout, stderr, exit_code) = run_xgrep(&[test_dir.to_str().unwrap()]);
+    let (stdout, stderr, exit_code) = run_xerg(&[test_dir.to_str().unwrap()]);
 
     assert_eq!(exit_code, 1);
     assert!(stderr.contains("Pattern missing"));

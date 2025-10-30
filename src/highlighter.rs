@@ -12,8 +12,8 @@
 //! ## Example
 //!
 //! ```no_run
-//! use xgrep::highlighter::TextHighlighter;
-//! use xgrep::colors::Color;
+//! use xerg::highlighter::TextHighlighter;
+//! use xerg::colors::Color;
 //!
 //! let highlighter = TextHighlighter::new("use", &Color::Blue);
 //! let highlighted = highlighter.highlight("use std::path::Path;");

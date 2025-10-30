@@ -13,7 +13,7 @@
 //! ## Example
 //!
 //! ```no_run
-//! use xgrep::crawler::get_files;
+//! use xerg::crawler::get_files;
 //! use std::path::PathBuf;
 //!
 //! let dir = PathBuf::from("src/");

@@ -15,7 +15,7 @@
 //! ## Usage
 //!
 //! ```no_run
-//! use xgrep::{run, colors::Color};
+//! use xerg::{run, colors::Color};
 //! use std::path::PathBuf;
 //!
 //! let dir = PathBuf::from(".");
