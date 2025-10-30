@@ -93,8 +93,8 @@ pub fn print_output(rx: mpsc::Receiver<FileMatchResult>, show_stats: bool) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::mpsc;
     use std::path::PathBuf;
+    use std::sync::mpsc;
 
     #[test]
     fn test_output_message_variants() {
@@ -114,23 +114,23 @@ mod tests {
 
         // Just test that they compile and can be matched
         match header {
-            OutputMessage::Header(_) => {},
+            OutputMessage::Header(_) => {}
             _ => panic!("Header variant failed"),
         }
         match line {
-            OutputMessage::Line { .. } => {},
+            OutputMessage::Line { .. } => {}
             _ => panic!("Line variant failed"),
         }
         match stats {
-            OutputMessage::SearchStats { .. } => {},
+            OutputMessage::SearchStats { .. } => {}
             _ => panic!("SearchStats variant failed"),
         }
         match error {
-            OutputMessage::Error(_) => {},
+            OutputMessage::Error(_) => {}
             _ => panic!("Error variant failed"),
         }
         match done {
-            OutputMessage::Done => {},
+            OutputMessage::Done => {}
             _ => panic!("Done variant failed"),
         }
     }
@@ -138,7 +138,7 @@ mod tests {
     #[test]
     fn test_print_output_with_stats() {
         let (tx, rx) = mpsc::channel();
-        
+
         // Create a test file result with stats
         let messages = vec![
             OutputMessage::Header(PathBuf::from("test.txt")),
@@ -153,10 +153,10 @@ mod tests {
             },
             OutputMessage::Done,
         ];
-        
+
         tx.send(messages).unwrap();
         drop(tx);
-        
+
         // This test mainly ensures the function doesn't panic
         // Output goes to stdout so we can't easily capture it in tests
         print_output(rx, true);
@@ -165,7 +165,7 @@ mod tests {
     #[test]
     fn test_print_output_without_stats() {
         let (tx, rx) = mpsc::channel();
-        
+
         // Create a test file result without stats display
         let messages = vec![
             OutputMessage::Header(PathBuf::from("test.txt")),
@@ -180,10 +180,10 @@ mod tests {
             },
             OutputMessage::Done,
         ];
-        
+
         tx.send(messages).unwrap();
         drop(tx);
-        
+
         // This should not display stats
         print_output(rx, false);
     }
@@ -191,7 +191,7 @@ mod tests {
     #[test]
     fn test_print_output_with_errors() {
         let (tx, rx) = mpsc::channel();
-        
+
         // Create a test with errors
         let messages = vec![
             OutputMessage::Header(PathBuf::from("test.txt")),
@@ -203,10 +203,10 @@ mod tests {
             },
             OutputMessage::Done,
         ];
-        
+
         tx.send(messages).unwrap();
         drop(tx);
-        
+
         // This test ensures error handling works
         print_output(rx, true);
     }
@@ -214,7 +214,7 @@ mod tests {
     #[test]
     fn test_print_output_multiple_files() {
         let (tx, rx) = mpsc::channel();
-        
+
         // First file
         let messages1 = vec![
             OutputMessage::Header(PathBuf::from("file1.txt")),
@@ -229,7 +229,7 @@ mod tests {
             },
             OutputMessage::Done,
         ];
-        
+
         // Second file
         let messages2 = vec![
             OutputMessage::Header(PathBuf::from("file2.txt")),
@@ -244,11 +244,11 @@ mod tests {
             },
             OutputMessage::Done,
         ];
-        
+
         tx.send(messages1).unwrap();
         tx.send(messages2).unwrap();
         drop(tx);
-        
+
         // Test multiple files with summary
         print_output(rx, true);
     }
@@ -257,24 +257,24 @@ mod tests {
     fn test_print_output_empty_results() {
         let (tx, rx) = mpsc::channel();
         drop(tx); // No messages sent
-        
+
         // Should handle empty results gracefully
         print_output(rx, true);
     }
 
-    #[test] 
+    #[test]
     fn test_file_match_result_type() {
         // Test the type alias works correctly
         let result: FileMatchResult = vec![
             OutputMessage::Header(PathBuf::from("test.txt")),
             OutputMessage::Done,
         ];
-        
+
         assert_eq!(result.len(), 2);
         match &result[0] {
             OutputMessage::Header(path) => {
                 assert_eq!(path, &PathBuf::from("test.txt"));
-            },
+            }
             _ => panic!("Expected Header message"),
         }
     }
@@ -287,8 +287,13 @@ mod tests {
             matched: 25,
             skipped: 3,
         };
-        
-        if let OutputMessage::SearchStats { lines, matched, skipped } = stats {
+
+        if let OutputMessage::SearchStats {
+            lines,
+            matched,
+            skipped,
+        } = stats
+        {
             assert_eq!(lines, 100);
             assert_eq!(matched, 25);
             assert_eq!(skipped, 3);
