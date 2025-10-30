@@ -8,7 +8,7 @@ A fast, parallel grep implementation in Rust with syntax highlighting and detail
 
 - ✅ **Parallel Processing**: Multi-core file processing with intelligent thread pool management
 - ✅ **Pattern Matching**: Regular expression engine with optimized performance
-- ✅ **Streaming Results**: Real-time output as matches are discovered
+- ✅ **Structured Streaming**: Streams structured matches per file with headers and statistics
 - ✅ **Directory Traversal**: Recursive scanning with symlink support
 - ✅ **Colorized Output**: Customizable syntax highlighting (red, green, blue, bold)
 - ✅ **Search Statistics**: Optional detailed metrics with `--stats` flag
@@ -122,7 +122,7 @@ The project follows a modular architecture with clear separation of concerns:
 
 **Multi-core Processing**: Utilizes `cores - 1` threads for optimal performance without system lock-up  
 **Memory Efficient**: Line-by-line processing handles files of any size  
-**Streaming Results**: Real-time output as matches are discovered  
+**Structured Streaming**: Streams structured matches per file as processing completes  
 **Optimized I/O**: Buffered reading and compiled regex reuse
 
 ## Planned Features
@@ -149,4 +149,4 @@ This project is open source and available under the MIT License.
 
 *Built during the [Pragmatic AI Labs Rust Bootcamp](https://github.com/paiml/ds500-rust-bootcamp)*
 
-**Project Status**: ✅ **Parallel Implementation Complete** - High-performance multi-core grep with streaming results
+**Project Status**: ✅ **Parallel Implementation Complete** - High-performance multi-core grep with structured streaming

@@ -9,7 +9,7 @@
 //! - **Multi-core Processing**: Utilizes available CPU cores with intelligent thread management
 //! - **Work-stealing Scheduler**: Rayon's scheduler automatically balances work across threads
 //! - **Memory Efficient**: Line-by-line processing handles files of any size
-//! - **Real-time Results**: Streaming output provides immediate feedback
+//! - **Structured Streaming**: Streams structured matches per file with headers and statistics
 //! - **Error Resilient**: Graceful per-file error recovery without stopping other files
 //!
 //! ## Performance Characteristics
