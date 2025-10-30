@@ -48,12 +48,14 @@ make all         # Build, test, and create release
 ## Usage
 
 **Minimal Usage:**
+
 ```bash
 # Basic search in current directory
 cargo run "pattern" .
 ```
 
 **Full Usage with All Options:**
+
 ```bash
 # Search with colored output, statistics, and specific path
 cargo run --color blue --stats "pattern" src/
@@ -103,8 +105,6 @@ The project follows a modular architecture with clear separation of concerns:
 - **`highlighter.rs`**: Regex-based text highlighting
 - **`colors.rs`**: ANSI color management
 - **`output.rs`**: Message handling and statistics formatting
-
-
 
 ## Dependencies
 
