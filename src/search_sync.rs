@@ -16,36 +16,82 @@ fn _print_header(filepath: &Path) {
     println!("\x1b[1;38;5;245m--- {}\x1b[0m ---", filepath.display());
 }
 
-fn _process_file_sync(filepath: &PathBuf, pattern: &str, highlighter: &TextHighlighter) {
+fn _process_file_sync(
+    filepath: &PathBuf,
+    pattern: &str,
+    highlighter: &TextHighlighter,
+    show_stats: bool,
+) -> (usize, usize, usize) {
     let file = File::open(filepath);
     let reader = BufReader::new(match file {
         Ok(f) => f,
         Err(e) => {
             eprintln!("Error opening file: {}", e);
-            return;
+            return (0, 0, 0); // (lines, matches, skipped) - errors handled at higher level
         }
     });
+
+    let mut total_lines = 0;
+    let mut matched_count = 0;
+    let mut skipped_count = 0;
 
     _print_header(filepath);
     for (index, line) in reader.lines().enumerate() {
         let line = match line {
             Ok(l) => l,
             Err(_e) => {
-                // suppress line read errors for cleaner output
+                // Line couldn't be read due to I/O or format error - count as skipped
+                skipped_count += 1;
                 continue;
             }
         };
+        total_lines += 1; // Successfully processed line
         if line.contains(pattern) {
             _print_line(index, &line, highlighter);
+
+            // Count actual number of pattern matches in this line
+            let matches_in_line = line.matches(pattern).count();
+            matched_count += matches_in_line;
         }
     }
+
+    // Print file summary using new format
+    if show_stats {
+        println!(
+            "  \x1b[2;38;5;245mlines: {}, matches: {}, skipped: {}\x1b[0m",
+            total_lines, matched_count, skipped_count
+        );
+    }
+
+    (total_lines, matched_count, skipped_count)
 }
 
-pub fn search_files_sync(files: &[PathBuf], pattern: &str, color: &Color) {
+pub fn search_files_sync(files: &[PathBuf], pattern: &str, color: &Color, show_stats: bool) {
     let highlighter = TextHighlighter::new(pattern, color);
+    let mut total_lines = 0;
+    let mut total_matched = 0;
+    let mut total_skipped = 0;
+    let mut total_errors = 0;
+    let mut files_processed = 0;
 
     for file in files {
-        _process_file_sync(file, pattern, &highlighter);
+        let (lines, matched, skipped) = _process_file_sync(file, pattern, &highlighter, show_stats);
+        if lines == 0 && matched == 0 && skipped == 0 {
+            // This indicates a file-level error (couldn't open file)
+            total_errors += 1;
+        }
+        total_lines += lines;
+        total_matched += matched;
+        total_skipped += skipped;
+        files_processed += 1;
+    }
+
+    // Print total summary if we processed any files and stats are enabled
+    if show_stats && files_processed > 0 {
+        println!(
+            "\x1b[1;38;5;245mSummary: files: {}\tlines: {}\tmatches: {}\tskipped: {}\terrors: {}\x1b[0m",
+            files_processed, total_lines, total_matched, total_skipped, total_errors
+        );
     }
 }
 
@@ -70,7 +116,7 @@ mod tests {
         let color = Color::Red;
 
         // Test that sync version completes without panicking
-        search_files_sync(&files, pattern, &color);
+        search_files_sync(&files, pattern, &color, false);
     }
 
     #[test]
@@ -94,7 +140,7 @@ mod tests {
         let color = Color::Blue;
 
         // Test that sync version processes files sequentially
-        search_files_sync(&files, pattern, &color);
+        search_files_sync(&files, pattern, &color, false);
     }
 
     #[test]
@@ -111,11 +157,11 @@ mod tests {
         let color = Color::Green;
 
         // Should handle no matches gracefully
-        search_files_sync(&files, pattern, &color);
+        search_files_sync(&files, pattern, &color, false);
     }
 
     #[test]
-    fn test_search_files_sync_nonexistent_file() {
+    fn test_search_files_sync_case_sensitive() {
         let temp_dir = TempDir::new("search_sync_nonexistent_test").unwrap();
         let nonexistent_file = temp_dir.path().join("does_not_exist.txt");
 
@@ -124,6 +170,6 @@ mod tests {
         let color = Color::Red;
 
         // Should print error message to stderr and continue (not panic)
-        search_files_sync(&files, pattern, &color);
+        search_files_sync(&files, pattern, &color, false);
     }
 }

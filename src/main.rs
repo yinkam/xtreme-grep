@@ -23,6 +23,9 @@ struct Cli {
 
     #[arg(long, value_name = "COLOR_NAME", default_value = "red")]
     color: String,
+
+    #[arg(long, help = "Show search stats per file and total stats summary")]
+    stats: bool,
 }
 
 fn main() {
@@ -57,7 +60,7 @@ fn main() {
         Color::Red
     });
 
-    run(&path, &cli.pattern, &color);
+    run(&path, &cli.pattern, &color, cli.stats);
 }
 
 #[cfg(test)]

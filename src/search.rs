@@ -11,6 +11,7 @@ fn _process_file(
     filepath: &PathBuf,
     pattern: &str,
     highlighter: &TextHighlighter,
+    show_stats: bool,
 ) -> Result<FileMatchResult> {
     let mut messages = Vec::new();
     messages.push(OutputMessage::Header(filepath.to_path_buf()));
@@ -25,21 +26,41 @@ fn _process_file(
         }
     });
 
+    let mut total_lines = 0;
+    let mut matched_count = 0;
+    let mut skipped_count = 0;
+
     for (index, line) in reader.lines().enumerate() {
         let line = match line {
             Ok(l) => l,
             Err(_e) => {
-                // suppress line read errors since they are not critical
+                // Line couldn't be read due to I/O or format error - count as skipped
+                skipped_count += 1;
                 continue;
             }
         };
+        total_lines += 1; // Successfully processed line
         if line.contains(pattern) {
             let line_msg = OutputMessage::Line {
                 index,
                 content: highlighter.highlight(&line),
             };
             messages.push(line_msg);
+
+            // Count actual number of pattern matches in this line
+            let matches_in_line = line.matches(pattern).count();
+            matched_count += matches_in_line;
         }
+        // Non-matching lines are just processed normally - no separate tracking needed
+    }
+
+    // Add file summary with counts if stats are enabled
+    if show_stats {
+        messages.push(OutputMessage::SearchStats {
+            lines: total_lines,
+            matched: matched_count,
+            skipped: skipped_count,
+        });
     }
 
     messages.push(OutputMessage::Done);
@@ -50,6 +71,7 @@ pub fn search_files(
     files: &[PathBuf],
     pattern: &str,
     color: &Color,
+    show_stats: bool,
 ) -> mpsc::Receiver<FileMatchResult> {
     let (tx, rx) = mpsc::channel();
     let highlighter = TextHighlighter::new(pattern, color);
@@ -62,7 +84,7 @@ pub fn search_files(
             let _file = file.clone();
 
             s.spawn(move |_| {
-                let messages = match _process_file(&_file, _pattern, &_highlighter) {
+                let messages = match _process_file(&_file, _pattern, &_highlighter, show_stats) {
                     Ok(msg) => msg,
                     Err(e) => {
                         let err_msg = format!("Error processing file {}: {}", _file.display(), e);
@@ -101,7 +123,7 @@ mod tests {
 
         // Test that search_files completes without panicking
         // Output goes to stdout, so we're testing the function doesn't crash
-        search_files(&files, pattern, &color);
+        search_files(&files, pattern, &color, false);
     }
 
     #[test]
@@ -125,7 +147,7 @@ mod tests {
         let color = Color::Blue;
 
         // Test that function completes without panicking
-        search_files(&files, pattern, &color);
+        search_files(&files, pattern, &color, false);
     }
 
     #[test]
@@ -142,7 +164,7 @@ mod tests {
         let color = Color::Green;
 
         // Should handle no matches gracefully
-        search_files(&files, pattern, &color);
+        search_files(&files, pattern, &color, false);
     }
 
     #[test]
@@ -158,7 +180,7 @@ mod tests {
         let color = Color::Red;
 
         // Should handle empty files without errors
-        search_files(&files, pattern, &color);
+        search_files(&files, pattern, &color, false);
     }
 
     #[test]
@@ -171,7 +193,7 @@ mod tests {
         let color = Color::Red;
 
         // Should print error message to stderr and continue (not panic)
-        search_files(&files, pattern, &color);
+        search_files(&files, pattern, &color, false);
     }
 
     #[test]
@@ -191,10 +213,10 @@ mod tests {
         let pattern = "pattern";
 
         // Test all color variants
-        search_files(&vec![files[0].clone()], pattern, &Color::Red);
-        search_files(&vec![files[1].clone()], pattern, &Color::Green);
-        search_files(&vec![files[2].clone()], pattern, &Color::Blue);
-        search_files(&vec![files[3].clone()], pattern, &Color::Bold);
+        search_files(&vec![files[0].clone()], pattern, &Color::Red, false);
+        search_files(&vec![files[1].clone()], pattern, &Color::Green, false);
+        search_files(&vec![files[2].clone()], pattern, &Color::Blue, false);
+        search_files(&vec![files[3].clone()], pattern, &Color::Bold, false);
     }
 
     #[test]
@@ -212,7 +234,7 @@ mod tests {
         let color = Color::Blue;
 
         // Should handle regex patterns (TextHighlighter uses regex internally)
-        search_files(&files, pattern, &color);
+        search_files(&files, pattern, &color, false);
     }
 
     #[test]
@@ -230,11 +252,11 @@ mod tests {
         let color = Color::Green;
 
         // Should handle Unicode and special characters
-        search_files(&files, pattern, &color);
+        search_files(&files, pattern, &color, false);
     }
 
     #[test]
-    fn test_search_files_case_sensitivity() {
+    fn test_search_files_case_sensitive() {
         let temp_dir = TempDir::new("search_case_test").unwrap();
         let test_file = temp_dir.path().join("test.txt");
 
@@ -248,7 +270,7 @@ mod tests {
         let color = Color::Red;
 
         // Should be case-sensitive by default
-        search_files(&files, pattern, &color);
+        search_files(&files, pattern, &color, false);
     }
 
     #[test]
@@ -267,7 +289,7 @@ mod tests {
         let color = Color::Blue;
 
         // Should handle very long lines without issues
-        search_files(&files, pattern, &color);
+        search_files(&files, pattern, &color, false);
     }
 
     #[test]
@@ -283,7 +305,7 @@ mod tests {
         let color = Color::Red;
 
         // Should handle empty pattern gracefully (regex behavior)
-        search_files(&files, pattern, &color);
+        search_files(&files, pattern, &color, false);
     }
 
     #[test]
@@ -307,6 +329,6 @@ mod tests {
         let color = Color::Green;
 
         // Should handle mixed scenarios: valid, empty, and missing files
-        search_files(&files, pattern, &color);
+        search_files(&files, pattern, &color, false);
     }
 }

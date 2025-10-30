@@ -11,11 +11,11 @@ use output::print_output;
 use search::search_files;
 use std::path::PathBuf;
 
-pub fn run(dir: &PathBuf, pattern: &str, color: &Color) {
+pub fn run(dir: &PathBuf, pattern: &str, color: &Color, show_stats: bool) {
     let files = get_files(dir);
-    let rx = search_files(&files, pattern, color);
+    let rx = search_files(&files, pattern, color, show_stats);
 
-    print_output(rx);
+    print_output(rx, show_stats);
 }
 
 #[cfg(test)]
@@ -40,7 +40,7 @@ mod tests {
 
         // Test that run function completes without panicking
         // This tests integration of crawler::get_files and search::search_files
-        run(&temp_dir.path().to_path_buf(), pattern, &color);
+        run(&temp_dir.path().to_path_buf(), pattern, &color, false);
     }
 
     #[test]
@@ -56,7 +56,7 @@ mod tests {
         let color = Color::Blue;
 
         // Test run with single file path
-        run(&test_file, pattern, &color);
+        run(&test_file, pattern, &color, false);
     }
 
     #[test]
@@ -72,11 +72,11 @@ mod tests {
         let color = Color::Green;
 
         // Should handle no matches gracefully
-        run(&temp_dir.path().to_path_buf(), pattern, &color);
+        run(&temp_dir.path().to_path_buf(), pattern, &color, false);
     }
 
     #[test]
-    fn test_run_with_different_colors() {
+    fn test_run_different_colors() {
         // Test run function with all color variants
         let temp_dir = TempDir::new("lib_colors_test").unwrap();
         let test_file = temp_dir.path().join("colors.txt");
@@ -87,9 +87,14 @@ mod tests {
         let pattern = "pattern";
 
         // Test all color variants
-        run(&temp_dir.path().to_path_buf(), pattern, &Color::Red);
-        run(&temp_dir.path().to_path_buf(), pattern, &Color::Green);
-        run(&temp_dir.path().to_path_buf(), pattern, &Color::Blue);
-        run(&temp_dir.path().to_path_buf(), pattern, &Color::Bold);
+        run(&temp_dir.path().to_path_buf(), pattern, &Color::Red, false);
+        run(
+            &temp_dir.path().to_path_buf(),
+            pattern,
+            &Color::Green,
+            false,
+        );
+        run(&temp_dir.path().to_path_buf(), pattern, &Color::Blue, false);
+        run(&temp_dir.path().to_path_buf(), pattern, &Color::Bold, false);
     }
 }
