@@ -1,3 +1,35 @@
+//! # Synchronous File Processing
+//!
+//! This module provides synchronous (single-threaded) file processing as an alternative
+//! to the parallel implementation. It processes files sequentially with immediate output.
+//!
+//! ## Features
+//!
+//! - **Sequential Processing**: Processes files one at a time in order
+//! - **Immediate Output**: Results displayed instantly as files are processed
+//! - **Memory Efficient**: Line-by-line processing with minimal memory footprint
+//! - **Simple Architecture**: Straightforward implementation without threading complexity
+//!
+//! ## Use Cases
+//!
+//! - **Small File Sets**: When parallel processing overhead isn't beneficial
+//! - **Debugging**: Simpler execution model for troubleshooting
+//! - **Resource Constraints**: When limiting CPU usage is desired
+//! - **Ordered Output**: When maintaining file processing order is important
+//!
+//! ## Example
+//!
+//! ```rust
+//! use xgrep::search_sync::search_files_sync;
+//! use xgrep::colors::Color;
+//! use std::path::PathBuf;
+//!
+//! let files = vec![PathBuf::from("src/main.rs")];
+//! let pattern = "use";
+//! let color = Color::Blue;
+//! search_files_sync(&files, pattern, &color, true);
+//! ```
+
 use crate::colors::Color;
 use crate::highlighter::TextHighlighter;
 use std::fs::File;

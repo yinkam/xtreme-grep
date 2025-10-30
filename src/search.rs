@@ -1,3 +1,38 @@
+//! # Parallel File Processing
+//!
+//! This module provides high-performance parallel file processing using Rayon's work-stealing
+//! thread pool. It efficiently searches through multiple files concurrently while maintaining
+//! optimal system responsiveness.
+//!
+//! ## Features
+//!
+//! - **Multi-core Processing**: Utilizes available CPU cores with intelligent thread management
+//! - **Work-stealing Scheduler**: Rayon's scheduler automatically balances work across threads
+//! - **Memory Efficient**: Line-by-line processing handles files of any size
+//! - **Real-time Results**: Streaming output provides immediate feedback
+//! - **Error Resilient**: Graceful per-file error recovery without stopping other files
+//!
+//! ## Performance Characteristics
+//!
+//! - **Thread Pool Size**: Uses `cores - 1` threads to prevent system lock-up
+//! - **I/O Optimization**: Buffered reading with `BufReader` for optimal disk access
+//! - **Regex Reuse**: Compiled patterns shared across threads for efficiency
+//!
+//! ## Example
+//!
+//! ```rust
+//! use xgrep::search::search_files;
+//! use xgrep::colors::Color;
+//! use std::path::PathBuf;
+//!
+//! let files = vec![PathBuf::from("src/main.rs")];
+//! let pattern = "use";
+//! let color = Color::Blue;
+//! let rx = search_files(&files, pattern, &color, true);
+//!
+//! // Process results from receiver...
+//! ```
+
 use crate::colors::Color;
 use crate::highlighter::TextHighlighter;
 use crate::output::{FileMatchResult, OutputMessage};

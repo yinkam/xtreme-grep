@@ -1,3 +1,35 @@
+//! # Output Management
+//!
+//! This module handles message formatting and statistics reporting for parallel file processing.
+//! It manages the display of search results and provides detailed search statistics.
+//!
+//! ## Features
+//!
+//! - **Message Formatting**: Structures output messages for consistent display
+//! - **Statistics Tracking**: Collects and displays detailed search metrics
+//! - **Parallel Communication**: Handles messages from multiple worker threads
+//! - **Real-time Output**: Streams results as they become available
+//!
+//! ## Search Statistics
+//!
+//! The module tracks comprehensive metrics:
+//! - **Files**: Total number of files processed
+//! - **Lines**: Total lines read across all files
+//! - **Matches**: Total pattern occurrences found
+//! - **Skipped**: Lines that couldn't be read due to errors
+//! - **Errors**: File-level access failures
+//!
+//! ## Example
+//!
+//! ```rust
+//! use xgrep::output::{print_output, OutputMessage};
+//! use std::sync::mpsc;
+//!
+//! let (tx, rx) = mpsc::channel();
+//! // Send messages from worker threads...
+//! print_output(rx, true); // Print with statistics
+//! ```
+
 use std::path::{Path, PathBuf};
 use std::sync::mpsc;
 

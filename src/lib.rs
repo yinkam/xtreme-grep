@@ -1,3 +1,42 @@
+//! # XGrep - A High-Performance Rust Grep Implementation
+//!
+//! XGrep is a fast, parallel grep implementation written in Rust that searches for patterns
+//! in files and directories with syntax highlighting and detailed search statistics.
+//!
+//! ## Features
+//!
+//! - **Parallel Processing**: Multi-core file processing with intelligent thread pool management
+//! - **Pattern Matching**: Regular expression engine with optimized performance
+//! - **Streaming Results**: Real-time output as matches are discovered
+//! - **Directory Traversal**: Recursive scanning with symlink support
+//! - **Colorized Output**: Customizable syntax highlighting (red, green, blue, bold)
+//! - **Search Statistics**: Optional detailed metrics with `--stats` flag
+//!
+//! ## Usage
+//!
+//! ```rust
+//! use xgrep::{run, colors::Color};
+//! use std::path::PathBuf;
+//!
+//! let dir = PathBuf::from(".");
+//! let pattern = "use";
+//! let color = Color::Blue;
+//! let show_stats = true;
+//!
+//! run(&dir, pattern, &color, show_stats);
+//! ```
+//!
+//! ## Architecture
+//!
+//! The library is organized into several focused modules:
+//!
+//! - [`colors`]: ANSI color management and formatting
+//! - [`crawler`]: Directory traversal with symlink support
+//! - [`highlighter`]: Regex-based text highlighting
+//! - [`output`]: Message handling and statistics formatting
+//! - [`search`]: Parallel file processing with Rayon
+//! - [`search_sync`]: Synchronous file processing implementation
+
 pub mod colors;
 pub mod crawler;
 pub mod highlighter;

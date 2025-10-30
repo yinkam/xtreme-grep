@@ -1,11 +1,49 @@
+//! # Color Management
+//!
+//! This module provides ANSI color code management for terminal text highlighting.
+//! It supports customizable syntax highlighting with different color options.
+//!
+//! ## Supported Colors
+//!
+//! - **Red**: Standard red text highlighting
+//! - **Green**: Standard green text highlighting  
+//! - **Blue**: Standard blue text highlighting
+//! - **Bold**: Bold text formatting
+//!
+//! ## Example
+//!
+//! ```rust
+//! use xgrep::colors::Color;
+//!
+//! let red = Color::Red;
+//! let code = red.to_code(); // Returns "31"
+//! let formatted = red.format("highlighted text");
+//! ```
+
+/// Represents available color options for text highlighting
 pub enum Color {
+    /// Red text color (ANSI code 31)
     Red,
+    /// Green text color (ANSI code 32)
     Green,
+    /// Blue text color (ANSI code 34)
     Blue,
+    /// Bold text formatting (ANSI code 1)
     Bold,
 }
 
 impl Color {
+    /// Returns the ANSI escape code for this color
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use xgrep::colors::Color;
+    ///
+    /// assert_eq!(Color::Red.to_code(), "31");
+    /// assert_eq!(Color::Blue.to_code(), "34");
+    /// assert_eq!(Color::Bold.to_code(), "1");
+    /// ```
     pub fn to_code(&self) -> &str {
         match self {
             Color::Red => "31",
@@ -15,6 +53,27 @@ impl Color {
         }
     }
 
+    /// Parses a color from a string representation
+    ///
+    /// Returns `Some(Color)` if the string matches a valid color name (case-insensitive),
+    /// or `None` if the string doesn't match any known color.
+    ///
+    /// # Supported Values
+    ///
+    /// - `"red"` → `Color::Red`
+    /// - `"green"` → `Color::Green`
+    /// - `"blue"` → `Color::Blue`
+    /// - `"bold"` → `Color::Bold`
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use xgrep::colors::Color;
+    ///
+    /// assert_eq!(Color::from_str("red"), Some(Color::Red));
+    /// assert_eq!(Color::from_str("BLUE"), Some(Color::Blue));
+    /// assert_eq!(Color::from_str("invalid"), None);
+    /// ```
     pub fn from_str(color_str: &str) -> Option<Color> {
         match color_str.to_lowercase().as_str() {
             "red" => Some(Color::Red),

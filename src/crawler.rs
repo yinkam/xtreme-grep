@@ -1,3 +1,26 @@
+//! # Directory Traversal
+//!
+//! This module provides efficient directory traversal functionality with intelligent
+//! file filtering and symlink support.
+//!
+//! ## Features
+//!
+//! - **Recursive Scanning**: Traverses directories recursively to find all files
+//! - **Hidden File Filtering**: Automatically skips hidden files and directories (starting with '.')
+//! - **Symlink Support**: Safely handles symbolic links during traversal
+//! - **Error Resilience**: Gracefully handles permission errors and inaccessible files
+//!
+//! ## Example
+//!
+//! ```rust
+//! use xgrep::crawler::get_files;
+//! use std::path::PathBuf;
+//!
+//! let dir = PathBuf::from("src/");
+//! let files = get_files(&dir);
+//! println!("Found {} files", files.len());
+//! ```
+
 use std::path::PathBuf;
 use walkdir::{DirEntry, WalkDir};
 
