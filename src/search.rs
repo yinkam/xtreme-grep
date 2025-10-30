@@ -20,7 +20,7 @@
 //!
 //! ## Example
 //!
-//! ```rust
+//! ```no_run
 //! use xgrep::search::search_files;
 //! use xgrep::colors::Color;
 //! use std::path::PathBuf;

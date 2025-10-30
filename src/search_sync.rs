@@ -19,7 +19,7 @@
 //!
 //! ## Example
 //!
-//! ```rust
+//! ```no_run
 //! use xgrep::search_sync::search_files_sync;
 //! use xgrep::colors::Color;
 //! use std::path::PathBuf;

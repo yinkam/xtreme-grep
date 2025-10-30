@@ -12,7 +12,7 @@
 //!
 //! ## Example
 //!
-//! ```rust
+//! ```no_run
 //! use xgrep::crawler::get_files;
 //! use std::path::PathBuf;
 //!

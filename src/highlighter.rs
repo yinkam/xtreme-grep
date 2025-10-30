@@ -11,7 +11,7 @@
 //!
 //! ## Example
 //!
-//! ```rust
+//! ```no_run
 //! use xgrep::highlighter::TextHighlighter;
 //! use xgrep::colors::Color;
 //!

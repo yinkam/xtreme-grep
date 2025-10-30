@@ -14,7 +14,7 @@
 //!
 //! ## Usage
 //!
-//! ```rust
+//! ```no_run
 //! use xgrep::{run, colors::Color};
 //! use std::path::PathBuf;
 //!

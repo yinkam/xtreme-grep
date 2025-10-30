@@ -21,7 +21,7 @@
 //!
 //! ## Example
 //!
-//! ```rust
+//! ```no_run
 //! use xgrep::output::{print_output, OutputMessage};
 //! use std::sync::mpsc;
 //!

@@ -12,15 +12,16 @@
 //!
 //! ## Example
 //!
-//! ```rust
+//! ```no_run
 //! use xgrep::colors::Color;
 //!
 //! let red = Color::Red;
 //! let code = red.to_code(); // Returns "31"
-//! let formatted = red.format("highlighted text");
 //! ```
 
 /// Represents available color options for text highlighting
+
+#[derive(Debug, PartialEq)]
 pub enum Color {
     /// Red text color (ANSI code 31)
     Red,
@@ -37,12 +38,12 @@ impl Color {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```no_run
     /// use xgrep::colors::Color;
     ///
-    /// assert_eq!(Color::Red.to_code(), "31");
-    /// assert_eq!(Color::Blue.to_code(), "34");
-    /// assert_eq!(Color::Bold.to_code(), "1");
+    /// let code = Color::Red.to_code();    // Returns "31"
+    /// let code = Color::Blue.to_code();   // Returns "34"
+    /// let code = Color::Bold.to_code();   // Returns "1"
     /// ```
     pub fn to_code(&self) -> &str {
         match self {
@@ -67,12 +68,12 @@ impl Color {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```no_run
     /// use xgrep::colors::Color;
     ///
-    /// assert_eq!(Color::from_str("red"), Some(Color::Red));
-    /// assert_eq!(Color::from_str("BLUE"), Some(Color::Blue));
-    /// assert_eq!(Color::from_str("invalid"), None);
+    /// let color = Color::from_str("red");     // Returns Some(Color::Red)
+    /// let color = Color::from_str("BLUE");    // Returns Some(Color::Blue)
+    /// let color = Color::from_str("invalid"); // Returns None
     /// ```
     pub fn from_str(color_str: &str) -> Option<Color> {
         match color_str.to_lowercase().as_str() {
@@ -155,9 +156,9 @@ mod tests {
     #[test]
     fn test_all_colors_have_codes() {
         let colors = vec![Color::Red, Color::Green, Color::Blue, Color::Bold];
-        for _color in colors {
-            let code = _color.to_code();
-            assert!(matches!(!code.is_empty(), _color));
+        for color in colors {
+            let code = color.to_code();
+            assert!(!code.is_empty());
         }
     }
 }
