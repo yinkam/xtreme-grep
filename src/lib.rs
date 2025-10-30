@@ -7,10 +7,10 @@
 //!
 //! - **Parallel Processing**: Multi-core file processing with intelligent thread pool management
 //! - **Pattern Matching**: Regular expression engine with optimized performance
-//! - **Streaming Results**: Real-time output as matches are discovered
+//! - **Structured Streaming**: Organized results with comprehensive statistics and timing
 //! - **Directory Traversal**: Recursive scanning with symlink support
 //! - **Colorized Output**: Customizable syntax highlighting (red, green, blue, bold)
-//! - **Search Statistics**: Optional detailed metrics with `--stats` flag
+//! - **Search Statistics**: Structured result format with timing metrics using `--stats`
 //!
 //! ## Usage
 //!
@@ -33,28 +33,30 @@
 //! - [`colors`]: ANSI color management and formatting
 //! - [`crawler`]: Directory traversal with symlink support
 //! - [`highlighter`]: Regex-based text highlighting
-//! - [`output`]: Message handling and statistics formatting
+//! - [`result`]: Message handling and statistics result formatting
 //! - [`search`]: Parallel file processing with Rayon
 //! - [`search_sync`]: Synchronous file processing implementation
 
 pub mod colors;
 pub mod crawler;
 pub mod highlighter;
-pub mod output;
+pub mod result;
 pub mod search;
 pub mod search_sync;
 
 use colors::Color;
 use crawler::get_files;
-use output::print_output;
+use result::print_result;
 use search::search_files;
 use std::path::PathBuf;
+use std::time::Instant;
 
 pub fn run(dir: &PathBuf, pattern: &str, color: &Color, show_stats: bool) {
+    let start_time = Instant::now();
     let files = get_files(dir);
     let rx = search_files(&files, pattern, color, show_stats);
 
-    print_output(rx, show_stats);
+    print_result(rx, show_stats, start_time);
 }
 
 #[cfg(test)]

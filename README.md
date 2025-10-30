@@ -82,15 +82,17 @@ $ cargo run --stats --color blue "use" src/
 --- /Users/user/rust-grep/src/lib.rs ---
     8:  use colors::Color;
     9:  use crawler::get_files;
-   10:  use output::print_output;
+   10:  use result::print_result;
 --- /Users/user/rust-grep/src/main.rs ---
    15:  use greprs::{run_search, Config};
    16:  use std::process;
   lines: 45, matches: 2, skipped: 0
-Summary: files: 8   lines: 1186   matches: 207   skipped: 0   errors: 0
+result: files:8; lines:1186; matches:207; skipped:0; errors:0; time:0.012s;
 ```
 
-**Metrics:** `files` = files processed, `lines` = total lines read, `matches` = pattern occurrences found, `skipped` = unreadable lines, `errors` = file access failures
+**Structured Result Format:** Machine-readable summary with semicolon delimiters and millisecond-precision timing. Perfect for performance analysis and automated testing.
+
+**Metrics:** `files` = processed files, `lines` = total lines read, `matches` = pattern occurrences, `skipped` = unreadable lines, `errors` = access failures, `time` = execution time
 
 ## Architecture
 
@@ -104,7 +106,7 @@ The project follows a modular architecture with clear separation of concerns:
 - **`crawler.rs`**: Directory traversal with symlink support
 - **`highlighter.rs`**: Regex-based text highlighting
 - **`colors.rs`**: ANSI color management
-- **`output.rs`**: Message handling and statistics formatting
+- **`result.rs`**: Message handling and statistics formatting
 
 ## Dependencies
 

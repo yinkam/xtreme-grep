@@ -1,6 +1,6 @@
-//! # Parallel File Processing
+//! # Parallel File Search
 //!
-//! This module provides high-performance parallel file processing using Rayon's work-stealing
+//! This module provides high-performance parallel file search using Rayon's work-stealing
 //! thread pool. It efficiently searches through multiple files concurrently while maintaining
 //! optimal system responsiveness.
 //!
@@ -35,7 +35,7 @@
 
 use crate::colors::Color;
 use crate::highlighter::TextHighlighter;
-use crate::output::{FileMatchResult, OutputMessage};
+use crate::result::{FileMatchResult, ResultMessage};
 use rayon::scope;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Result};
@@ -49,14 +49,14 @@ fn _process_file(
     show_stats: bool,
 ) -> Result<FileMatchResult> {
     let mut messages = Vec::new();
-    messages.push(OutputMessage::Header(filepath.to_path_buf()));
+    messages.push(ResultMessage::Header(filepath.to_path_buf()));
 
     let file = File::open(filepath);
     let reader = BufReader::new(match file {
         Ok(f) => f,
         Err(e) => {
             let err_msg = format!("Failed to open file {}: {}", filepath.display(), e);
-            messages.push(OutputMessage::Error(err_msg));
+            messages.push(ResultMessage::Error(err_msg));
             return Ok(messages);
         }
     });
@@ -76,7 +76,7 @@ fn _process_file(
         };
         total_lines += 1; // Successfully processed line
         if line.contains(pattern) {
-            let line_msg = OutputMessage::Line {
+            let line_msg = ResultMessage::Line {
                 index,
                 content: highlighter.highlight(&line),
             };
@@ -91,14 +91,14 @@ fn _process_file(
 
     // Add file summary with counts if stats are enabled
     if show_stats {
-        messages.push(OutputMessage::SearchStats {
+        messages.push(ResultMessage::SearchStats {
             lines: total_lines,
             matched: matched_count,
             skipped: skipped_count,
         });
     }
 
-    messages.push(OutputMessage::Done);
+    messages.push(ResultMessage::Done);
     Ok(messages)
 }
 
@@ -123,7 +123,7 @@ pub fn search_files(
                     Ok(msg) => msg,
                     Err(e) => {
                         let err_msg = format!("Error processing file {}: {}", _file.display(), e);
-                        vec![OutputMessage::Error(err_msg)]
+                        vec![ResultMessage::Error(err_msg)]
                     }
                 };
                 _tx.send(messages).ok();
@@ -157,7 +157,7 @@ mod tests {
         let color = Color::Red;
 
         // Test that search_files completes without panicking
-        // Output goes to stdout, so we're testing the function doesn't crash
+        // Results go to stdout, so we're testing the function doesn't crash
         search_files(&files, pattern, &color, false);
     }
 

@@ -1,7 +1,7 @@
-//! # Synchronous File Processing
+//! # Synchronous File Search
 //!
-//! This module provides synchronous (single-threaded) file processing as an alternative
-//! to the parallel implementation. It processes files sequentially with immediate output.
+//! This module provides synchronous (single-threaded) file search as an alternative
+//! to the parallel implementation. It searches files sequentially with immediate output.
 //!
 //! ## Features
 //!

@@ -1,14 +1,23 @@
-//! # Output Management
+//! # Search Results Management
 //!
-//! This module handles message formatting and statistics reporting for parallel file processing.
+//! This module handles message formatting and statistics reporting for parallel file search.
 //! It manages the display of search results and provides detailed search statistics.
 //!
 //! ## Features
 //!
-//! - **Message Formatting**: Structures output messages for consistent display
-//! - **Statistics Tracking**: Collects and displays detailed search metrics
+//! - **Message Formatting**: Structures result messages for consistent display
+//! - **Statistics Tracking**: Collects and displays detailed search metrics with timing
 //! - **Parallel Communication**: Handles messages from multiple worker threads
-//! - **Real-time Output**: Streams results as they become available
+//! - **Structured Results**: Provides machine-readable result format
+//! - **Real-time Display**: Streams results as they become available
+//!
+//! ## Result Format
+//!
+//! When statistics are enabled (`--stats`), the module generates a structured summary:
+//!
+//! ```text
+//! result: files:8; lines:1699; matches:85; skipped:0; errors:0; time:0.002s;
+//! ```
 //!
 //! ## Search Statistics
 //!
@@ -18,24 +27,27 @@
 //! - **Matches**: Total pattern occurrences found
 //! - **Skipped**: Lines that couldn't be read due to errors
 //! - **Errors**: File-level access failures
+//! - **Time**: Total execution time with millisecond precision (3 decimal places)
 //!
 //! ## Example
 //!
 //! ```no_run
-//! use xgrep::output::{print_output, OutputMessage};
+//! use xgrep::result::{print_result, ResultMessage};
 //! use std::sync::mpsc;
 //!
 //! let (tx, rx) = mpsc::channel();
+//! let start_time = std::time::Instant::now();
 //! // Send messages from worker threads...
-//! print_output(rx, true); // Print with statistics
+//! print_result(rx, true, start_time); // Print with statistics
 //! ```
 
 use std::path::{Path, PathBuf};
 use std::sync::mpsc;
+use std::time::Instant;
 
-pub type FileMatchResult = Vec<OutputMessage>;
+pub type FileMatchResult = Vec<ResultMessage>;
 
-pub enum OutputMessage {
+pub enum ResultMessage {
     Header(PathBuf),
     Line {
         index: usize,
@@ -65,14 +77,21 @@ fn _print_line_stats(lines: usize, matched: usize, skipped: usize) {
     );
 }
 
-fn _print_summary_stats(files: usize, lines: usize, matched: usize, skipped: usize, errors: usize) {
+fn _print_result_stats(
+    files: usize,
+    lines: usize,
+    matched: usize,
+    skipped: usize,
+    errors: usize,
+    elapsed_secs: f64,
+) {
     println!(
-        "\x1b[1;38;5;245mSummary: files: {}\tlines: {}\tmatches: {}\tskipped: {}\terrors: {}\x1b[0m",
-        files, lines, matched, skipped, errors
+        "\x1b[1;38;5;245mresult: files:{}; lines:{}; matches:{}; skipped:{}; errors:{}; time:{:.3}s;\x1b[0m",
+        files, lines, matched, skipped, errors, elapsed_secs
     );
 }
 
-pub fn print_output(rx: mpsc::Receiver<FileMatchResult>, show_stats: bool) {
+pub fn print_result(rx: mpsc::Receiver<FileMatchResult>, show_stats: bool, start_time: Instant) {
     let mut total_lines = 0;
     let mut total_matched = 0;
     let mut total_skipped = 0;
@@ -82,13 +101,13 @@ pub fn print_output(rx: mpsc::Receiver<FileMatchResult>, show_stats: bool) {
     for message in rx {
         for msg in message {
             match msg {
-                OutputMessage::Header(path) => {
+                ResultMessage::Header(path) => {
                     _print_header(&path);
                 }
-                OutputMessage::Line { index, content } => {
+                ResultMessage::Line { index, content } => {
                     _print_line(index, &content);
                 }
-                OutputMessage::SearchStats {
+                ResultMessage::SearchStats {
                     lines,
                     matched,
                     skipped,
@@ -101,23 +120,25 @@ pub fn print_output(rx: mpsc::Receiver<FileMatchResult>, show_stats: bool) {
                     total_skipped += skipped;
                     files_processed += 1;
                 }
-                OutputMessage::Error(err) => {
+                ResultMessage::Error(err) => {
                     eprintln!("Error: {}", err);
                     total_errors += 1;
                 }
-                OutputMessage::Done => break,
+                ResultMessage::Done => break,
             }
         }
     }
 
     // Print total summary if we processed any files and stats are enabled
     if show_stats && files_processed > 0 {
-        _print_summary_stats(
+        let elapsed_secs = start_time.elapsed().as_secs_f64();
+        _print_result_stats(
             files_processed,
             total_lines,
             total_matched,
             total_skipped,
             total_errors,
+            elapsed_secs,
         );
     }
 }
@@ -129,152 +150,152 @@ mod tests {
     use std::sync::mpsc;
 
     #[test]
-    fn test_output_message_variants() {
-        // Test that all OutputMessage variants can be created
-        let header = OutputMessage::Header(PathBuf::from("test.txt"));
-        let line = OutputMessage::Line {
+    fn test_result_message_variants() {
+                // Test that all ResultMessage variants can be created
+        let header = ResultMessage::Header(PathBuf::from("test.txt"));
+        let line = ResultMessage::Line {
             index: 0,
             content: "test content".to_string(),
         };
-        let stats = OutputMessage::SearchStats {
+        let stats = ResultMessage::SearchStats {
             lines: 10,
             matched: 5,
             skipped: 2,
         };
-        let error = OutputMessage::Error("test error".to_string());
-        let done = OutputMessage::Done;
+        let error = ResultMessage::Error("test error".to_string());
+        let done = ResultMessage::Done;
 
         // Just test that they compile and can be matched
         match header {
-            OutputMessage::Header(_) => {}
+            ResultMessage::Header(_) => {}
             _ => panic!("Header variant failed"),
         }
         match line {
-            OutputMessage::Line { .. } => {}
+            ResultMessage::Line { .. } => {}
             _ => panic!("Line variant failed"),
         }
         match stats {
-            OutputMessage::SearchStats { .. } => {}
+            ResultMessage::SearchStats { .. } => {}
             _ => panic!("SearchStats variant failed"),
         }
         match error {
-            OutputMessage::Error(_) => {}
+            ResultMessage::Error(_) => {}
             _ => panic!("Error variant failed"),
         }
         match done {
-            OutputMessage::Done => {}
+            ResultMessage::Done => {}
             _ => panic!("Done variant failed"),
         }
     }
 
     #[test]
-    fn test_print_output_with_stats() {
+    fn test_print_result_with_stats() {
         let (tx, rx) = mpsc::channel();
 
         // Create a test file result with stats
         let messages = vec![
-            OutputMessage::Header(PathBuf::from("test.txt")),
-            OutputMessage::Line {
+            ResultMessage::Header(PathBuf::from("test.txt")),
+            ResultMessage::Line {
                 index: 0,
                 content: "found match".to_string(),
             },
-            OutputMessage::SearchStats {
+            ResultMessage::SearchStats {
                 lines: 5,
                 matched: 1,
                 skipped: 0,
             },
-            OutputMessage::Done,
+            ResultMessage::Done,
         ];
 
         tx.send(messages).unwrap();
         drop(tx);
 
         // This test mainly ensures the function doesn't panic
-        // Output goes to stdout so we can't easily capture it in tests
-        print_output(rx, true);
+        // Results go to stdout so we can't easily capture it in tests
+        print_result(rx, true, Instant::now());
     }
 
     #[test]
-    fn test_print_output_without_stats() {
+    fn test_print_result_without_stats() {
         let (tx, rx) = mpsc::channel();
 
         // Create a test file result without stats display
         let messages = vec![
-            OutputMessage::Header(PathBuf::from("test.txt")),
-            OutputMessage::Line {
+            ResultMessage::Header(PathBuf::from("test.txt")),
+            ResultMessage::Line {
                 index: 0,
                 content: "found match".to_string(),
             },
-            OutputMessage::SearchStats {
+            ResultMessage::SearchStats {
                 lines: 5,
                 matched: 1,
                 skipped: 0,
             },
-            OutputMessage::Done,
+            ResultMessage::Done,
         ];
 
         tx.send(messages).unwrap();
         drop(tx);
 
         // This should not display stats
-        print_output(rx, false);
+        print_result(rx, false, Instant::now());
     }
 
     #[test]
-    fn test_print_output_with_errors() {
+    fn test_print_result_with_errors() {
         let (tx, rx) = mpsc::channel();
 
         // Create a test with errors
         let messages = vec![
-            OutputMessage::Header(PathBuf::from("test.txt")),
-            OutputMessage::Error("Failed to read file".to_string()),
-            OutputMessage::SearchStats {
+            ResultMessage::Header(PathBuf::from("test.txt")),
+            ResultMessage::Error("Failed to read file".to_string()),
+            ResultMessage::SearchStats {
                 lines: 0,
                 matched: 0,
                 skipped: 5,
             },
-            OutputMessage::Done,
+            ResultMessage::Done,
         ];
 
         tx.send(messages).unwrap();
         drop(tx);
 
         // This test ensures error handling works
-        print_output(rx, true);
+        print_result(rx, true, Instant::now());
     }
 
     #[test]
-    fn test_print_output_multiple_files() {
+    fn test_print_result_multiple_files() {
         let (tx, rx) = mpsc::channel();
 
         // First file
         let messages1 = vec![
-            OutputMessage::Header(PathBuf::from("file1.txt")),
-            OutputMessage::Line {
+            ResultMessage::Header(PathBuf::from("file1.txt")),
+            ResultMessage::Line {
                 index: 0,
                 content: "match in file 1".to_string(),
             },
-            OutputMessage::SearchStats {
+            ResultMessage::SearchStats {
                 lines: 10,
                 matched: 2,
                 skipped: 0,
             },
-            OutputMessage::Done,
+            ResultMessage::Done,
         ];
 
         // Second file
         let messages2 = vec![
-            OutputMessage::Header(PathBuf::from("file2.txt")),
-            OutputMessage::Line {
+            ResultMessage::Header(PathBuf::from("file2.txt")),
+            ResultMessage::Line {
                 index: 5,
                 content: "match in file 2".to_string(),
             },
-            OutputMessage::SearchStats {
+            ResultMessage::SearchStats {
                 lines: 8,
                 matched: 1,
                 skipped: 1,
             },
-            OutputMessage::Done,
+            ResultMessage::Done,
         ];
 
         tx.send(messages1).unwrap();
@@ -282,29 +303,29 @@ mod tests {
         drop(tx);
 
         // Test multiple files with summary
-        print_output(rx, true);
+        print_result(rx, true, Instant::now());
     }
 
     #[test]
-    fn test_print_output_empty_results() {
+    fn test_print_result_empty_results() {
         let (tx, rx) = mpsc::channel();
         drop(tx); // No messages sent
 
         // Should handle empty results gracefully
-        print_output(rx, true);
+        print_result(rx, true, Instant::now());
     }
 
     #[test]
     fn test_file_match_result_type() {
         // Test the type alias works correctly
         let result: FileMatchResult = vec![
-            OutputMessage::Header(PathBuf::from("test.txt")),
-            OutputMessage::Done,
+            ResultMessage::Header(PathBuf::from("test.txt")),
+            ResultMessage::Done,
         ];
 
         assert_eq!(result.len(), 2);
         match &result[0] {
-            OutputMessage::Header(path) => {
+            ResultMessage::Header(path) => {
                 assert_eq!(path, &PathBuf::from("test.txt"));
             }
             _ => panic!("Expected Header message"),
@@ -314,13 +335,13 @@ mod tests {
     #[test]
     fn test_search_stats_fields() {
         // Test SearchStats field access
-        let stats = OutputMessage::SearchStats {
+        let stats = ResultMessage::SearchStats {
             lines: 100,
             matched: 25,
             skipped: 3,
         };
 
-        if let OutputMessage::SearchStats {
+        if let ResultMessage::SearchStats {
             lines,
             matched,
             skipped,
