@@ -51,6 +51,7 @@ This project is part of the Pragmatic AI Labs learning community. For questions 
 ## Bootcamp Context
 
 This project demonstrates the culmination of skills learned in the 6-week Rust Bootcamp, including:
+
 - Development environment setup
 - Project structure and organization
 - Data structures and advanced types
