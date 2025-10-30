@@ -71,11 +71,11 @@ impl Color {
     /// ```no_run
     /// use xgrep::colors::Color;
     ///
-    /// let color = Color::from_str("red");     // Returns Some(Color::Red)
-    /// let color = Color::from_str("BLUE");    // Returns Some(Color::Blue)
-    /// let color = Color::from_str("invalid"); // Returns None
+    /// let color = Color::from_string("red");     // Returns Some(Color::Red)
+    /// let color = Color::from_string("BLUE");    // Returns Some(Color::Blue)
+    /// let color = Color::from_string("invalid"); // Returns None
     /// ```
-    pub fn from_str(color_str: &str) -> Option<Color> {
+    pub fn from_string(color_str: &str) -> Option<Color> {
         match color_str.to_lowercase().as_str() {
             "red" => Some(Color::Red),
             "green" => Some(Color::Green),
@@ -123,14 +123,14 @@ mod tests {
             ("bold", Color::Bold),
         ];
         for (color_str, _expected_color) in colors_list {
-            let color = Color::from_str(color_str);
+            let color = Color::from_string(color_str);
             assert!(color.is_some());
         }
     }
 
     #[test]
     fn test_from_str_invalid_color() {
-        let color = Color::from_str("invalid");
+        let color = Color::from_string("invalid");
         assert!(color.is_none());
     }
 
@@ -142,14 +142,14 @@ mod tests {
             ("rEd", Color::Red),
         ];
         for (color_str, _expected_color) in color_cases {
-            let color = Color::from_str(color_str);
+            let color = Color::from_string(color_str);
             assert!(color.is_some());
         }
     }
 
     #[test]
     fn test_from_str_empty_string() {
-        let color = Color::from_str("");
+        let color = Color::from_string("");
         assert!(color.is_none());
     }
 

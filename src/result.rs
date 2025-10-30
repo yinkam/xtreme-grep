@@ -151,7 +151,7 @@ mod tests {
 
     #[test]
     fn test_result_message_variants() {
-                // Test that all ResultMessage variants can be created
+        // Test that all ResultMessage variants can be created
         let header = ResultMessage::Header(PathBuf::from("test.txt"));
         let line = ResultMessage::Line {
             index: 0,

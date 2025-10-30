@@ -1,5 +1,4 @@
 use clap::Parser;
-use num_cpus;
 use rayon::ThreadPoolBuilder;
 use std::env::current_dir;
 use std::fs::canonicalize;
@@ -52,7 +51,7 @@ fn main() {
         }
     };
 
-    let color = Color::from_str(&cli.color).unwrap_or_else(|| {
+    let color = Color::from_string(&cli.color).unwrap_or_else(|| {
         eprintln!(
             "Warning: Invalid color name '{}'. Defaulting to Red.",
             &cli.color

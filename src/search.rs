@@ -119,7 +119,7 @@ pub fn search_files(
             let _file = file.clone();
 
             s.spawn(move |_| {
-                let messages = match _process_file(&_file, _pattern, &_highlighter, show_stats) {
+                let messages = match _process_file(&_file, _pattern, _highlighter, show_stats) {
                     Ok(msg) => msg,
                     Err(e) => {
                         let err_msg = format!("Error processing file {}: {}", _file.display(), e);
