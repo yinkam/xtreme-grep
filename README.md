@@ -1,8 +1,15 @@
-# XGrep - A Rust Grep Implementation
+# xerg - High-Performance Parallel Grep Tool
+
+[![Crates.io](https://img.shields.io/crates/v/xerg.svg)](https://crates.io/crates/xerg)
+[![Downloads](https://img.shields.io/crates/d/xerg.svg)](https://crates.io/crates/xerg)
+[![GitHub](https://img.shields.io/github/stars/yinkam/xtreme-grep.svg)](https://github.com/yinkam/xtreme-grep)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+**Published on [crates.io](https://crates.io/crates/xerg) as `xerg`**
+
+An ultra-fast, parallel grep implementation in Rust with syntax highlighting and detailed search statistics. Built for performance with multi-core processing and optimized dependencies.
 
 *This repository is part of [Pragmatic AI Labs Rust Bootcamp](https://ds500.paiml.com/bootcamps/rust)*
-
-A fast, parallel grep implementation in Rust with syntax highlighting and detailed search statistics. Built for performance with multi-core processing and optimized dependencies.
 
 ## Features
 
@@ -17,6 +24,14 @@ A fast, parallel grep implementation in Rust with syntax highlighting and detail
 ## Quick Start
 
 ### Installation
+
+#### Install from crates.io (Recommended)
+
+```bash
+cargo install xerg
+```
+
+#### Build from Source
 
 1. Clone the repository:
 
@@ -47,16 +62,22 @@ make all         # Build, test, and create release
 
 ## Usage
 
-**Minimal Usage:**
+**Using the installed binary:**
+
+```bash
+# Basic search in current directory
+xerg "pattern" .
+
+# Search with colored output, statistics, and specific path
+xerg --color blue --stats "pattern" src/
+```
+
+**For development (from source):**
 
 ```bash
 # Basic search in current directory
 cargo run "pattern" .
-```
 
-**Full Usage with All Options:**
-
-```bash
 # Search with colored output, statistics, and specific path
 cargo run --color blue --stats "pattern" src/
 
@@ -78,7 +99,7 @@ cargo run --color blue --stats "pattern" src/
 ### Search Statistics
 
 ```bash
-$ cargo run --stats --color blue "use" src/
+$ xerg --stats --color blue "use" src/
 --- /Users/user/rust-grep/src/lib.rs ---
     8:  use colors::Color;
     9:  use crawler::get_files;
