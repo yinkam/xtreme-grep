@@ -44,7 +44,7 @@ use std::sync::mpsc;
 
 fn _process_file(
     filepath: &PathBuf,
-    pattern: &str,
+    _pattern: &str,
     highlighter: &TextHighlighter,
     show_stats: bool,
 ) -> Result<FileMatchResult> {
@@ -75,7 +75,7 @@ fn _process_file(
             }
         };
         total_lines += 1; // Successfully processed line
-        if line.contains(pattern) {
+        if highlighter.regex.is_match(&line) {
             let line_msg = ResultMessage::Line {
                 index,
                 content: highlighter.highlight(&line),
@@ -83,7 +83,7 @@ fn _process_file(
             messages.push(line_msg);
 
             // Count actual number of pattern matches in this line
-            let matches_in_line = line.matches(pattern).count();
+            let matches_in_line = highlighter.regex.find_iter(&line).count();
             matched_count += matches_in_line;
         }
         // Non-matching lines are just processed normally - no separate tracking needed

@@ -92,6 +92,83 @@ fn _print_result_stats(
 }
 
 pub fn print_result(rx: mpsc::Receiver<FileMatchResult>, show_stats: bool, start_time: Instant) {
+    print_result_formatted(rx, show_stats, start_time, false);
+}
+
+/// Print results for xtreme mode (raw string output)
+pub fn print_xtreme_results(
+    rx: mpsc::Receiver<Vec<String>>,
+    show_stats: bool,
+    start_time: Instant,
+) {
+    let mut total_files = 0;
+    let mut total_lines = 0;
+    let mut total_matches = 0;
+    let mut total_skipped = 0;
+    let total_errors = 0;
+
+    while let Ok(results) = rx.recv() {
+        for line in results {
+            if line.starts_with("#") {
+                // Parse stats from comment line if present
+                if show_stats {
+                    total_files += 1;
+                    // Parse: # filepath: lines:X, matches:Y, skipped:Z
+                    if let Some(stats_part) = line.split(": ").nth(1) {
+                        for stat in stats_part.split(", ") {
+                            if let Some(value) = stat.split(":").nth(1) {
+                                match stat.split(":").next() {
+                                    Some("lines") => {
+                                        total_lines += value.parse::<u64>().unwrap_or(0)
+                                    }
+                                    Some("matches") => {
+                                        total_matches += value.parse::<u64>().unwrap_or(0)
+                                    }
+                                    Some("skipped") => {
+                                        total_skipped += value.parse::<u64>().unwrap_or(0)
+                                    }
+                                    _ => {}
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                // Direct output for raw results
+                println!("{}", line);
+            }
+        }
+    }
+
+    // Print summary stats if requested
+    if show_stats {
+        let elapsed = start_time.elapsed();
+        println!(
+            "result: files:{}; lines:{}; matches:{}; skipped:{}; errors:{}; time:{:.3}s;",
+            total_files,
+            total_lines,
+            total_matches,
+            total_skipped,
+            total_errors,
+            elapsed.as_secs_f64()
+        );
+    }
+}
+
+pub fn print_result_xtreme(
+    rx: mpsc::Receiver<FileMatchResult>,
+    show_stats: bool,
+    start_time: Instant,
+) {
+    print_result_formatted(rx, show_stats, start_time, true);
+}
+
+fn print_result_formatted(
+    rx: mpsc::Receiver<FileMatchResult>,
+    show_stats: bool,
+    start_time: Instant,
+    xtreme_mode: bool,
+) {
     let mut total_lines = 0;
     let mut total_matched = 0;
     let mut total_skipped = 0;
@@ -101,18 +178,26 @@ pub fn print_result(rx: mpsc::Receiver<FileMatchResult>, show_stats: bool, start
     for message in rx {
         for msg in message {
             match msg {
-                ResultMessage::Header(path) => {
-                    _print_header(&path);
+                ResultMessage::Header(_path) => {
+                    if !xtreme_mode {
+                        _print_header(&_path);
+                    }
+                    // In xtreme mode, skip headers for raw output
                 }
                 ResultMessage::Line { index, content } => {
-                    _print_line(index, &content);
+                    if xtreme_mode {
+                        // In xtreme mode, content already contains raw format
+                        println!("{}", content);
+                    } else {
+                        _print_line(index, &content);
+                    }
                 }
                 ResultMessage::SearchStats {
                     lines,
                     matched,
                     skipped,
                 } => {
-                    if show_stats {
+                    if show_stats && !xtreme_mode {
                         _print_line_stats(lines, matched, skipped);
                     }
                     total_lines += lines;
@@ -121,7 +206,11 @@ pub fn print_result(rx: mpsc::Receiver<FileMatchResult>, show_stats: bool, start
                     files_processed += 1;
                 }
                 ResultMessage::Error(err) => {
-                    eprintln!("Error: {}", err);
+                    if xtreme_mode {
+                        println!("# Error: {}", err);
+                    } else {
+                        eprintln!("Error: {}", err);
+                    }
                     total_errors += 1;
                 }
                 ResultMessage::Done => break,
@@ -354,4 +443,23 @@ mod tests {
             panic!("Expected SearchStats variant");
         }
     }
+}
+
+pub fn print_xtreme_stats(
+    files_processed: usize,
+    lines: usize,
+    matches: usize,
+    skipped: usize,
+    start_time: Instant,
+) {
+    let duration = start_time.elapsed();
+    println!();
+    println!(
+        "# Summary: files:{}, lines:{}, matches:{}, skipped:{}, time:{:.2}ms",
+        files_processed,
+        lines,
+        matches,
+        skipped,
+        duration.as_millis()
+    );
 }

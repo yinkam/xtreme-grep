@@ -3,7 +3,7 @@ use rayon::ThreadPoolBuilder;
 use std::env::current_dir;
 use std::fs::canonicalize;
 use std::path::{Path, PathBuf};
-use xerg::{colors::Color, run};
+use xerg::{colors::Color, run, run_xtreme};
 
 fn resolve_path(path: Option<PathBuf>) -> Result<PathBuf, std::io::Error> {
     let final_path = match path {
@@ -15,7 +15,12 @@ fn resolve_path(path: Option<PathBuf>) -> Result<PathBuf, std::io::Error> {
 }
 
 #[derive(Parser)]
-#[command(author, version, about, long_about = None)]
+#[command(
+    author,
+    version,
+    about = "Ultra-fast parallel grep with structured output",
+    long_about = "XErg provides fast parallel grep with pretty formatted output by default.\nUse --xtreme for maximum raw speed when structured output isn't needed."
+)]
 struct Cli {
     pattern: String,
     path: Option<PathBuf>,
@@ -25,6 +30,13 @@ struct Cli {
 
     #[arg(long, help = "Show search stats per file and total stats summary")]
     stats: bool,
+
+    #[arg(
+        short = 'x',
+        long,
+        help = "Use raw speed mode with unformatted output for maximum performance"
+    )]
+    xtreme: bool,
 }
 
 fn main() {
@@ -59,7 +71,13 @@ fn main() {
         Color::Red
     });
 
-    run(&path, &cli.pattern, &color, cli.stats);
+    if cli.xtreme {
+        // Use xtreme mode for maximum speed when structured output isn't needed
+        run_xtreme(&path, &cli.pattern, &color, cli.stats);
+    } else {
+        // Default to formatted output for most users
+        run(&path, &cli.pattern, &color, cli.stats);
+    }
 }
 
 #[cfg(test)]

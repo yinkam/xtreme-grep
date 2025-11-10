@@ -220,3 +220,42 @@ fn test_missing_pattern_error() {
     assert!(stderr.contains("Pattern missing"));
     assert!(stdout.is_empty());
 }
+
+#[test]
+fn test_xtreme_mode() {
+    let temp_dir = TempDir::new("integration_test").unwrap();
+    let test_dir = create_test_files(&temp_dir);
+
+    // Test xtreme mode basic search
+    let (stdout, stderr, exit_code) = run_xerg(&["world", test_dir.to_str().unwrap(), "--xtreme"]);
+
+    assert_eq!(exit_code, 0);
+    assert!(stderr.is_empty());
+    assert!(stdout.contains(": 1:"));
+    assert!(stdout.contains("Hello"));
+    assert!(stdout.contains("world"));
+    assert!(stdout.contains("file1.txt"));
+    // Ensure it's raw format, not formatted
+    assert!(!stdout.contains("---"));
+}
+
+#[test]
+fn test_xtreme_mode_with_stats() {
+    let temp_dir = TempDir::new("integration_test").unwrap();
+    let test_dir = create_test_files(&temp_dir);
+
+    // Test xtreme mode with stats
+    let (stdout, stderr, exit_code) =
+        run_xerg(&["world", test_dir.to_str().unwrap(), "--xtreme", "--stats"]);
+
+    assert_eq!(exit_code, 0);
+    assert!(stderr.is_empty());
+    assert!(stdout.contains(": 1:"));
+    assert!(stdout.contains("Hello"));
+    assert!(stdout.contains("world"));
+    assert!(stdout.contains("file1.txt"));
+    assert!(stdout.contains("# Summary:"));
+    assert!(stdout.contains("files:"));
+    assert!(stdout.contains("matches:"));
+    assert!(stdout.contains("time:"));
+}

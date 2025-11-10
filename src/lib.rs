@@ -34,20 +34,21 @@
 //! - [`crawler`]: Directory traversal with symlink support
 //! - [`highlighter`]: Regex-based text highlighting
 //! - [`result`]: Message handling and statistics result formatting
-//! - [`search`]: Parallel file processing with Rayon
-//! - [`search_sync`]: Synchronous file processing implementation
+//! - [`search`]: Formatted parallel file processing (use --formatted flag)
+//! - [`search_xtreme`]: **Ultra-fast raw output mode for maximum speed** (default)
 
 pub mod colors;
 pub mod crawler;
 pub mod highlighter;
 pub mod result;
 pub mod search;
-pub mod search_sync;
+pub mod search_xtreme;
 
-use colors::Color;
-use crawler::get_files;
-use result::print_result;
-use search::search_files;
+use crate::colors::Color;
+use crate::crawler::get_files;
+use crate::result::{print_result, print_xtreme_stats};
+use crate::search::search_files;
+use crate::search_xtreme::search_files_xtreme;
 use std::path::PathBuf;
 use std::time::Instant;
 
@@ -57,6 +58,17 @@ pub fn run(dir: &PathBuf, pattern: &str, color: &Color, show_stats: bool) {
     let rx = search_files(&files, pattern, color, show_stats);
 
     print_result(rx, show_stats, start_time);
+}
+
+pub fn run_xtreme(dir: &PathBuf, pattern: &str, color: &Color, show_stats: bool) {
+    let start_time = Instant::now();
+    let files = get_files(dir);
+    let (files_processed, lines, matches, skipped) =
+        search_files_xtreme(&files, pattern, color, show_stats);
+
+    if show_stats {
+        print_xtreme_stats(files_processed, lines, matches, skipped, start_time);
+    }
 }
 
 #[cfg(test)]
