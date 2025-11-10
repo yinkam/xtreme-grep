@@ -1,6 +1,6 @@
 [package]
 name = "xerg"
-version = "0.1.1"
+version = "0.2.0"
 edition = "2024"
 authors = ["yinkam <5328632+yinkam@users.noreply.github.com>"]
 description = "Ultra-fast grep implementation in Rust - built for maximum speed with direct output and parallel processing"

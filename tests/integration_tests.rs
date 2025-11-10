@@ -172,7 +172,7 @@ fn test_version_option() {
     assert_eq!(exit_code, 0);
     assert!(stderr.is_empty());
     assert!(stdout.contains("xerg"));
-    assert!(stdout.contains("0.1.1"));
+    assert!(stdout.contains("0.2.0"));
 }
 
 #[test]
