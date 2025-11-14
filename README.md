@@ -7,23 +7,20 @@
 
 **Published on [crates.io](https://crates.io/crates/xerg) as `xerg`**
 
-An ultra-fast, parallel grep implementation in Rust with syntax highlighting and detailed search statistics. Built for performance with multi-core processing and optimized dependencies.
-
-*This repository is part of [Pragmatic AI Labs Rust Bootcamp](https://ds500.paiml.com/bootcamps/rust)*
+An ultra-fast grep alternative with structured output and smart performance optimizations. Perfect for developers who need speed without sacrificing readability.
 
 ## Why xerg?
 
-**🚀 23x faster than system grep** on large directory structures with beautiful structured output. Optional `-x` (xtreme) mode delivers **33x speedup** when raw speed matters most.
+**🚀 Up to 34x faster than system grep** on large directory structures with structured output. Optional `-x` (xtreme) mode delivers maximum speedup when raw speed matters most.
 
 ## Features
 
-- ✅ **Parallel Processing**: Multi-core file processing with intelligent thread pool management
-- ✅ **Pattern Matching**: Regular expression engine with optimized performance
-- ✅ **Structured Streaming**: Streams structured matches per file with headers and statistics
-- ✅ **Directory Traversal**: Recursive scanning with symlink support
-- ✅ **Colorized Output**: Customizable syntax highlighting (red, green, blue, bold)
-- ✅ **Search Statistics**: Optional detailed metrics with `--stats` flag
-- ✅ **Quality Assurance**: Comprehensive test suite and optimized dependencies
+- **⚡ Parallel processing**: Multi-core file scanning for maximum speed
+- **🎨 Pretty output**: Syntax highlighting and structured results
+- **🔍 Modern regex**: PCRE support with advanced features beyond standard grep
+- **🔧 Drop-in replacement**: Familiar grep-like interface
+- **🚀 Smart modes**: Default (pretty) or `-x` (raw speed)
+- **📊 Statistics**: Optional detailed metrics with `--stats`
 
 ## Performance Benchmarks
 
@@ -31,17 +28,17 @@ xerg excels in different scenarios depending on your use case:
 
 ### Performance Comparison: xerg vs System grep
 
-| Scenario | Tool/Mode | Time | CPU Usage | Winner | Performance Gain |
-|----------|-----------|------|-----------|---------|-----------------|
-| **Single File Search** | System grep | 0.004s | 88% | ✅ System grep | 92x faster |
-| | xerg (default) | 0.369s | 26% | | |
-| | xerg -x | 0.369s | 26% | | |
-| **Multi-Directory Search** | System grep | 10.194s | 87% | | |
-| | **xerg (default)** | **~0.450s** | **650%** | ✅ **xerg default** | **23x faster** |
-| | **xerg -x** | **0.310s** | **690%** | ✅ **xerg xtreme** | **33x faster** |
-| **Large Dataset (2971 files)** | System grep | 10.194s | Single-core | | |
-| | **xerg (default)** | **~0.450s** | **Multi-core** | ✅ **xerg default** | **23x faster** |
-| | **xerg -x** | **0.310s** | **Multi-core** | ✅ **xerg xtreme** | **33x faster** |
+| Scenario | Tool/Mode | Time (avg) | CPU Usage | Notes |
+|----------|-----------|------------:|-----------|-------|
+| **Single File Search** | System grep | 4.0ms | ~58% | Baseline (single-file) |
+|  | xerg (default) | 3.0ms | ~121% | 1.0ms faster (25% speedup) |
+|  | xerg -x | 3.0ms | ~109% | 1.0ms faster (25% speedup) |
+| **Small multi-file set (src/ ~8 files)** | System grep | 3.0ms | ~77% | Small set baseline |
+|  | xerg (default) | 3.0ms | ~137% | Performance parity achieved |
+|  | xerg -x | 4.0ms | ~168% | 1.0ms slower (25% overhead) |
+| **Large Dataset (target/ - many files)** | System grep | 28,122ms | ~96% | Heavy single-threaded workload |
+|  | xerg (default) | 1,590ms | ~484% | **17.7x faster than grep** |
+|  | xerg -x | 835ms | ~745% | **33.7x faster than grep** |
 
 ### Mode Comparison: xerg (default) vs xerg -x
 
@@ -75,17 +72,8 @@ xerg excels in different scenarios depending on your use case:
 ✅ **Simple shell scripting**  
 ✅ **One-off quick searches**
 
-### Detailed Benchmark Results
-
-| Test Case | Pattern | Files | Matches | System grep | xerg (default) | xerg -x | Best Speedup |
-|-----------|---------|-------|---------|-------------|----------------|---------|--------------|
-| Small project (src/) | `use` | 8 files | 90 matches | 0.004s | 0.369s | 0.369s | 0.01x |
-| Large dataset (deps/) | `use` | 2971 files | 3465 matches | 10.194s | ~0.450s | **0.310s** | **32.9x** |
-| Real codebase | `function` | Variable | Variable | Linear growth | Parallel + pretty | **Maximum speed** | **Scales** |
-
 **Test Environment**: macOS, Multi-core system, Release builds  
-**Methodology**: Multiple runs averaged, `time` command measurements  
-**Key Finding**: Default mode provides excellent performance with readability; -x maximizes raw speed
+**Key Finding**: Default mode provides excellent performance with readability; `-x` maximizes raw speed
 
 ## Quick Start
 
@@ -183,36 +171,9 @@ result: files:8; lines:1186; matches:207; skipped:0; errors:0; time:0.012s;
 
 ## Architecture
 
-The project follows a modular architecture with clear separation of concerns:
-
-### Core Modules
-
-- **`main.rs`**: CLI entry point and argument parsing
-- **`lib.rs`**: Core integration layer connecting all modules  
-- **`search.rs`**: Parallel file processing with Rayon
-- **`crawler.rs`**: Directory traversal with symlink support
-- **`highlighter.rs`**: Regex-based text highlighting
-- **`colors.rs`**: ANSI color management
-- **`result.rs`**: Message handling and statistics formatting
-
-## Dependencies
-
-| Crate | Purpose |
-|-------|---------|
-| `clap` | CLI argument parsing |
-| `num_cpus` | Thread optimization |
-| `rayon` | Parallel processing |
-| `regex` | Pattern matching |
-| `walkdir` | Directory traversal |
-
-**Binary Size**: 2.2MB optimized release build with minimal feature flags enabled
-
-## Implementation Details
-
-**Multi-core Processing**: Utilizes `cores - 1` threads for optimal performance without system lock-up  
-**Memory Efficient**: Line-by-line processing handles files of any size  
-**Structured Streaming**: Streams structured matches per file as processing completes  
-**Optimized I/O**: Buffered reading and compiled regex reuse
+**Multi-core Processing**: Utilizes `cores - 1` threads for optimal performance  
+**Smart File Reading**: Adaptive strategy based on file size (streaming/bulk/memory-mapped)  
+**Memory Efficient**: Handles files of any size without excessive memory usage  
 
 ## Planned Features
 
