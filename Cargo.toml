@@ -1,6 +1,6 @@
 [package]
 name = "xerg"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2024"
 authors = ["yinkam <5328632+yinkam@users.noreply.github.com>"]
 description = "Ultra-fast grep implementation in Rust - built for maximum speed with direct output and parallel processing"
@@ -22,12 +22,26 @@ num_cpus = "1.17.0"
 rayon = "1.11.0"
 regex = { version = "1.12.2", default-features = false, features = ["std", "perf", "unicode-perl"] }
 walkdir = "2.5.0"
+memmap2 = "0.9.4"
 
 [dev-dependencies]
 tempdir = "0.3.7"
 regex = "1.12.2"
 criterion = { version = "0.5", features = ["html_reports"] }
+memmap2 = "0.9.4"
 
 [[bench]]
 name = "performance"
+harness = false
+
+[[bench]]
+name = "single_file_analysis"
+harness = false
+
+[[bench]]
+name = "large_file_focus"
+harness = false
+
+[[bench]]
+name = "small_file_overhead"
 harness = false

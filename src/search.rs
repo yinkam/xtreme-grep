@@ -34,32 +34,50 @@
 //! ```
 
 use crate::colors::Color;
+use crate::file_reader::FileReader;
 use crate::highlighter::TextHighlighter;
 use crate::result::{FileMatchResult, ResultMessage};
+use memmap2::MmapOptions;
 use rayon::scope;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Result};
 use std::path::PathBuf;
 use std::sync::mpsc;
 
-fn _process_file(
-    filepath: &PathBuf,
-    _pattern: &str,
+/// Process content line by line and collect matches
+fn _process_content_lines(
+    content: &str,
     highlighter: &TextHighlighter,
-    show_stats: bool,
-) -> Result<FileMatchResult> {
-    let mut messages = Vec::new();
-    messages.push(ResultMessage::Header(filepath.to_path_buf()));
+    messages: &mut Vec<ResultMessage>,
+) -> (usize, usize) {
+    let mut total_lines = 0;
+    let mut matched_count = 0;
 
-    let file = File::open(filepath);
-    let reader = BufReader::new(match file {
-        Ok(f) => f,
-        Err(e) => {
-            let err_msg = format!("Failed to open file {}: {}", filepath.display(), e);
-            messages.push(ResultMessage::Error(err_msg));
-            return Ok(messages);
+    for (index, line) in content.lines().enumerate() {
+        total_lines += 1;
+
+        if highlighter.regex.is_match(line) {
+            let line_msg = ResultMessage::Line {
+                index,
+                content: highlighter.highlight(line),
+            };
+            messages.push(line_msg);
+            let matches_in_line = highlighter.regex.find_iter(line).count();
+            matched_count += matches_in_line;
         }
-    });
+    }
+
+    (total_lines, matched_count)
+}
+
+/// Process file using streaming line-by-line reading with BufReader
+fn _process_file_streaming(
+    filepath: &PathBuf,
+    highlighter: &TextHighlighter,
+    messages: &mut Vec<ResultMessage>,
+) -> Result<(usize, usize, usize)> {
+    let file = File::open(filepath)?;
+    let reader = BufReader::new(file);
 
     let mut total_lines = 0;
     let mut matched_count = 0;
@@ -69,25 +87,97 @@ fn _process_file(
         let line = match line {
             Ok(l) => l,
             Err(_e) => {
-                // Line couldn't be read due to I/O or format error - count as skipped
                 skipped_count += 1;
                 continue;
             }
         };
-        total_lines += 1; // Successfully processed line
+        total_lines += 1;
+
         if highlighter.regex.is_match(&line) {
             let line_msg = ResultMessage::Line {
                 index,
                 content: highlighter.highlight(&line),
             };
             messages.push(line_msg);
-
-            // Count actual number of pattern matches in this line
             let matches_in_line = highlighter.regex.find_iter(&line).count();
             matched_count += matches_in_line;
         }
-        // Non-matching lines are just processed normally - no separate tracking needed
     }
+
+    Ok((total_lines, matched_count, skipped_count))
+}
+
+/// Process file using bulk read with fs::read_to_string
+fn _process_file_bulk_read(
+    filepath: &PathBuf,
+    highlighter: &TextHighlighter,
+    messages: &mut Vec<ResultMessage>,
+) -> Result<(usize, usize, usize)> {
+    let content = std::fs::read_to_string(filepath)?;
+    let (total_lines, matched_count) = _process_content_lines(&content, highlighter, messages);
+    Ok((total_lines, matched_count, 0)) // No skipped lines with bulk reading
+}
+
+/// Process file using memory mapping
+fn _process_file_memory_map(
+    filepath: &PathBuf,
+    highlighter: &TextHighlighter,
+    messages: &mut Vec<ResultMessage>,
+) -> Result<(usize, usize, usize)> {
+    let file = File::open(filepath)?;
+    let mmap = unsafe { MmapOptions::new().map(&file)? };
+    let content = std::str::from_utf8(&mmap)
+        .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))?;
+
+    let (total_lines, matched_count) = _process_content_lines(content, highlighter, messages);
+    Ok((total_lines, matched_count, 0)) // No skipped lines with memory mapping
+}
+
+fn _process_file(
+    filepath: &PathBuf,
+    _pattern: &str,
+    highlighter: &TextHighlighter,
+    show_stats: bool,
+    reader: FileReader,
+) -> Result<FileMatchResult> {
+    let mut messages = Vec::new();
+    messages.push(ResultMessage::Header(filepath.to_path_buf()));
+
+    let (total_lines, matched_count, skipped_count) = match reader {
+        FileReader::Streaming => {
+            match _process_file_streaming(filepath, highlighter, &mut messages) {
+                Ok(stats) => stats,
+                Err(e) => {
+                    let err_msg = format!("Failed to process file {}: {}", filepath.display(), e);
+                    messages.push(ResultMessage::Error(err_msg));
+                    return Ok(messages);
+                }
+            }
+        }
+
+        FileReader::BulkRead => {
+            match _process_file_bulk_read(filepath, highlighter, &mut messages) {
+                Ok(stats) => stats,
+                Err(e) => {
+                    let err_msg = format!("Failed to read file {}: {}", filepath.display(), e);
+                    messages.push(ResultMessage::Error(err_msg));
+                    return Ok(messages);
+                }
+            }
+        }
+
+        FileReader::MemoryMap => {
+            match _process_file_memory_map(filepath, highlighter, &mut messages) {
+                Ok(stats) => stats,
+                Err(e) => {
+                    let err_msg =
+                        format!("Failed to memory map file {}: {}", filepath.display(), e);
+                    messages.push(ResultMessage::Error(err_msg));
+                    return Ok(messages);
+                }
+            }
+        }
+    };
 
     // Add file summary with counts if stats are enabled
     if show_stats {
@@ -110,7 +200,27 @@ pub fn search_files(
 ) -> mpsc::Receiver<FileMatchResult> {
     let (tx, rx) = mpsc::channel();
     let highlighter = TextHighlighter::new(pattern, color);
+    let is_single_file = files.len() == 1;
 
+    // Single-file optimization: bypass thread pool overhead for single files
+    if is_single_file {
+        let file = &files[0];
+        let reader = FileReader::select(file, true);
+
+        let messages = match _process_file(file, pattern, &highlighter, show_stats, reader) {
+            Ok(msg) => msg,
+            Err(e) => {
+                let err_msg = format!("Error processing file {}: {}", file.display(), e);
+                vec![ResultMessage::Error(err_msg)]
+            }
+        };
+
+        // Send result immediately for single file
+        tx.send(messages).ok();
+        return rx;
+    }
+
+    // Multi-file processing: use existing thread pool approach with streaming reader
     scope(|s| {
         for file in files {
             let _tx = tx.clone();
@@ -119,13 +229,16 @@ pub fn search_files(
             let _file = file.clone();
 
             s.spawn(move |_| {
-                let messages = match _process_file(&_file, _pattern, _highlighter, show_stats) {
-                    Ok(msg) => msg,
-                    Err(e) => {
-                        let err_msg = format!("Error processing file {}: {}", _file.display(), e);
-                        vec![ResultMessage::Error(err_msg)]
-                    }
-                };
+                let reader = FileReader::select(&_file, false);
+                let messages =
+                    match _process_file(&_file, _pattern, _highlighter, show_stats, reader) {
+                        Ok(msg) => msg,
+                        Err(e) => {
+                            let err_msg =
+                                format!("Error processing file {}: {}", _file.display(), e);
+                            vec![ResultMessage::Error(err_msg)]
+                        }
+                    };
                 _tx.send(messages).ok();
             });
         }
