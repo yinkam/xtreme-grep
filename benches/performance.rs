@@ -6,7 +6,7 @@ use std::process::Command;
 use tempdir::TempDir;
 
 // Import our modules
-use xerg::colors::Color;
+use xerg::output::colors::Color;
 use xerg::search::crawler::get_files;
 use xerg::search::default::search_files;
 use xerg::search::xtreme::search_files as search_files_xtreme;

@@ -13,7 +13,7 @@
 //! ## Example
 //!
 //! ```no_run
-//! use xerg::colors::Color;
+//! use xerg::output::colors::Color;
 //!
 //! let red = Color::Red;
 //! let code = red.to_code(); // Returns "31"
@@ -39,7 +39,7 @@ impl Color {
     /// # Examples
     ///
     /// ```no_run
-    /// use xerg::colors::Color;
+    /// use xerg::output::colors::Color;
     ///
     /// let code = Color::Red.to_code();    // Returns "31"
     /// let code = Color::Blue.to_code();   // Returns "34"
@@ -69,7 +69,7 @@ impl Color {
     /// # Examples
     ///
     /// ```no_run
-    /// use xerg::colors::Color;
+    /// use xerg::output::colors::Color;
     ///
     /// let color = Color::from_string("red");     // Returns Some(Color::Red)
     /// let color = Color::from_string("BLUE");    // Returns Some(Color::Blue)

@@ -15,7 +15,7 @@
 //! ## Usage
 //!
 //! ```no_run
-//! use xerg::{run, colors::Color};
+//! use xerg::{run, output::colors::Color};
 //! use std::path::PathBuf;
 //!
 //! let dir = PathBuf::from(".");
@@ -37,13 +37,13 @@
 //! - [`search`]: Formatted parallel file processing (use --formatted flag)
 //! - [`search_xtreme`]: **Ultra-fast raw output mode for maximum speed** (default)
 
-pub mod colors;
-pub mod highlighter;
-pub mod result;
+pub mod output;
 pub mod search;
 
-use crate::colors::Color;
-use crate::result::{print_result, print_xtreme_stats};
+use crate::output::{
+    colors::Color,
+    result::{print_result, print_xtreme_stats},
+};
 use crate::search::xtreme::search_files as search_files_xtreme;
 use crate::search::{crawler::get_files, default::search_files};
 use std::path::PathBuf;

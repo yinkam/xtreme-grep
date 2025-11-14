@@ -17,8 +17,7 @@
 //! in the standard `grep` format. This provides maximum throughput for large
 //! codebases or when piping results to other tools.
 
-use crate::colors::Color;
-use crate::highlighter::TextHighlighter;
+use crate::output::{colors::Color, highlighter::TextHighlighter};
 use crate::search::reader::FileReader;
 use memmap2::MmapOptions;
 use rayon::scope;

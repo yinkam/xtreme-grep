@@ -2,8 +2,8 @@ use std::fs::{self, File};
 use std::io::Write;
 use std::process::Command;
 use tempdir::TempDir;
-use xerg::colors::Color;
-use xerg::highlighter::TextHighlighter;
+use xerg::output::colors::Color;
+use xerg::output::highlighter::TextHighlighter;
 
 /// Helper function to run xerg command and capture output
 fn run_xerg(args: &[&str]) -> (String, String, i32) {

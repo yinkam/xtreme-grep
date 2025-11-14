@@ -12,15 +12,15 @@
 //! ## Example
 //!
 //! ```no_run
-//! use xerg::highlighter::TextHighlighter;
-//! use xerg::colors::Color;
+//! use xerg::output::highlighter::TextHighlighter;
+//! use xerg::output::colors::Color;
 //!
 //! let highlighter = TextHighlighter::new("use", &Color::Blue);
 //! let highlighted = highlighter.highlight("use std::path::Path;");
 //! // Returns: "\x1b[34muse\x1b[0m std::path::Path;"
 //! ```
 
-use crate::colors::Color;
+use super::colors::Color;
 use regex::Regex;
 
 pub struct TextHighlighter {

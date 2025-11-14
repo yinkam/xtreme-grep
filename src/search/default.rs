@@ -22,7 +22,7 @@
 //!
 //! ```no_run
 //! use xerg::search::default::search_files;
-//! use xerg::colors::Color;
+//! use xerg::output::colors::Color;
 //! use std::path::PathBuf;
 //!
 //! let files = vec![PathBuf::from("src/main.rs")];
@@ -34,9 +34,8 @@
 //! ```
 
 use super::reader::FileReader;
-use crate::colors::Color;
-use crate::highlighter::TextHighlighter;
-use crate::result::{FileMatchResult, ResultMessage};
+use crate::output::result::{FileMatchResult, ResultMessage};
+use crate::output::{colors::Color, highlighter::TextHighlighter};
 use memmap2::MmapOptions;
 use rayon::scope;
 use std::fs::File;

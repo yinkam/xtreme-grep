@@ -4,7 +4,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader, Read};
 use std::path::Path;
 use tempdir::TempDir;
-use xerg::colors::Color;
+use xerg::output::colors::Color;
 use xerg::search::default::search_files;
 
 // Test different file reading strategies for single-file optimization
