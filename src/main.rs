@@ -51,7 +51,7 @@ fn main() {
 
     if cli.path.is_none() && Path::new(&cli.pattern).exists() {
         eprintln!("error: Pattern missing. You provided a path but no search pattern.");
-        eprintln!("Usage: xgrep <PATTERN> [PATH] [-- <options>...]");
+        eprintln!("Usage: xerg <PATTERN> [PATH] [-- <options>...]");
         std::process::exit(1)
     }
 
@@ -138,7 +138,7 @@ mod tests {
         // Test that CLI structure is properly defined
         // This is more of a compile-time test, but ensures the structure is valid
 
-        let args = vec!["xgrep", "pattern", "/path"];
+        let args = vec!["xerg", "pattern", "/path"];
         let cli = Cli::try_parse_from(args).unwrap();
 
         assert_eq!(cli.pattern, "pattern");
@@ -149,7 +149,7 @@ mod tests {
     #[test]
     fn test_cli_with_color_flag() {
         // Test CLI parsing with color flag
-        let args = vec!["xgrep", "pattern", "/path", "--color", "blue"];
+        let args = vec!["xerg", "pattern", "/path", "--color", "blue"];
         let cli = Cli::try_parse_from(args).unwrap();
 
         assert_eq!(cli.pattern, "pattern");
@@ -160,7 +160,7 @@ mod tests {
     #[test]
     fn test_cli_pattern_only() {
         // Test CLI with just pattern (no path)
-        let args = vec!["xgrep", "pattern"];
+        let args = vec!["xerg", "pattern"];
         let cli = Cli::try_parse_from(args).unwrap();
 
         assert_eq!(cli.pattern, "pattern");

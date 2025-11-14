@@ -136,7 +136,7 @@ cargo run "pattern" .
 cargo run --color blue --stats "pattern" src/
 
 # Or use the built binary directly
-./target/release/xgrep --color green --stats "pattern" /path/to/search
+./target/release/xerg --color green --stats "pattern" /path/to/search
 ```
 
 ### Command-Line Options

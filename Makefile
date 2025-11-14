@@ -1,4 +1,4 @@
-# Makefile for xgrep
+# Makefile for xerg
 .PHONY: help build test run clean release all
 
 help:
@@ -20,7 +20,7 @@ test:
 	cargo test
 
 run:
-	@echo "Running xgrep..."
+	@echo "Running xerg..."
 	cargo run -- "fn main" src/
 
 clean:
