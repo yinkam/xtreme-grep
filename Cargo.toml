@@ -11,6 +11,15 @@ repository = "https://github.com/yinkam/xtreme-grep"
 keywords = ["grep", "search", "fast", "parallel", "cli"]
 categories = ["command-line-utilities", "text-processing"]
 documentation = "https://docs.rs/xerg"
+exclude = [
+    "benches/*",
+    "tests/*", 
+    "DEVELOPMENT_LOG.md",
+    "PERFORMANCE_ANALYSIS.md",
+    "CONTRIBUTING.md",
+    "Makefile",
+    ".gitignore"
+]
 
 [[bin]]
 name = "xerg"
