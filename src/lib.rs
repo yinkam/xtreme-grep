@@ -39,6 +39,7 @@
 
 pub mod colors;
 pub mod crawler;
+pub mod file_reader;
 pub mod highlighter;
 pub mod result;
 pub mod search;
@@ -52,6 +53,10 @@ use crate::search_xtreme::search_files_xtreme;
 use std::path::PathBuf;
 use std::time::Instant;
 
+/// Run xerg in default mode with formatted output
+///
+/// This function provides the standard xerg experience with structured,
+/// human-readable output formatting and file headers.
 pub fn run(dir: &PathBuf, pattern: &str, color: &Color, show_stats: bool) {
     let start_time = Instant::now();
     let files = get_files(dir);
@@ -60,6 +65,10 @@ pub fn run(dir: &PathBuf, pattern: &str, color: &Color, show_stats: bool) {
     print_result(rx, show_stats, start_time);
 }
 
+/// Run xerg in xtreme mode for maximum performance
+///
+/// This function provides raw, unformatted output optimized for speed.
+/// Output format: `filepath: line_number: content`
 pub fn run_xtreme(dir: &PathBuf, pattern: &str, color: &Color, show_stats: bool) {
     let start_time = Instant::now();
     let files = get_files(dir);

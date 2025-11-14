@@ -172,7 +172,7 @@ fn test_version_option() {
     assert_eq!(exit_code, 0);
     assert!(stderr.is_empty());
     assert!(stdout.contains("xerg"));
-    assert!(stdout.contains("0.2.0"));
+    assert!(stdout.contains("0.2.1"));
 }
 
 #[test]
@@ -231,7 +231,7 @@ fn test_xtreme_mode() {
 
     assert_eq!(exit_code, 0);
     assert!(stderr.is_empty());
-    assert!(stdout.contains(": 1:"));
+    assert!(stdout.contains(":1: "));
     assert!(stdout.contains("Hello"));
     assert!(stdout.contains("world"));
     assert!(stdout.contains("file1.txt"));
@@ -250,7 +250,7 @@ fn test_xtreme_mode_with_stats() {
 
     assert_eq!(exit_code, 0);
     assert!(stderr.is_empty());
-    assert!(stdout.contains(": 1:"));
+    assert!(stdout.contains(":1: "));
     assert!(stdout.contains("Hello"));
     assert!(stdout.contains("world"));
     assert!(stdout.contains("file1.txt"));

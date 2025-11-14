@@ -32,6 +32,7 @@ fn is_hidden(entry: &DirEntry) -> bool {
         .unwrap_or(false)
 }
 
+/// Recursively discover files to search
 pub fn get_files(dir: &PathBuf) -> Vec<PathBuf> {
     if dir.is_file() {
         return vec![dir.clone()];
@@ -81,7 +82,7 @@ mod tests {
 
     #[test]
     fn test_get_files_empty_directory() {
-        // TODO: Test that empty directory returns empty vec
+        // Test that empty directory returns empty vector
         let temp_dir = TempDir::new("test_").unwrap();
 
         let files = get_files(&temp_dir.into_path());
