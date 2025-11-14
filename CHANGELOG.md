@@ -5,9 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
-
-## [0.2.1] - 2025-11-12
+## [0.2.1] - 2025-11-14
 
 ### Added
 
@@ -17,6 +15,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Memory Mapping Support**: Optimal strategy for files between 7MB-100MB to prevent virtual memory pressure
 - **Bulk Reading Strategy**: `fs::read_to_string` for files ≤7MB delivers 3.6x speedup vs streaming
 - **Pattern Matching Elegance**: Local constant declarations enable computed values in range patterns
+- **Module Reorganization**: Clean separation of concerns with logical directory structure
+  - `search/` directory: Core functionality (crawler, default, reader, xtreme modules)  
+  - `output/` directory: Presentation layer (colors, highlighter, result modules)
+- **Namespace Consistency**: All imports updated to use `search::` and `output::` namespaces
+- **Function Cleanup**: Removed redundant `_xtreme` suffixes since functions are now properly module-scoped
+- **Documentation Updates**: Fixed all doctests and integration tests for new module structure
 
 ### Enhanced
 
@@ -25,6 +29,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Function Organization**: Private `_process_file_*` helpers following Rust naming conventions
 - **Testing Coverage**: All 48 unit tests + 13 integration tests passing with new architecture
 - **Performance Consistency**: Maintained existing parallel performance for multi-file operations
+
+### Changed
+
+- **Binary Name Consistency**: Updated remaining `xgrep` references to `xerg` throughout codebase
+- **Import Paths**: All modules now use logical namespace paths (`output::colors::Color`, `search::default::search_files`)
+- **Test Organization**: Unit tests properly organized by module with clean separation
+
+### Performance
 
 - **File Processing Strategy**: 
   - Files ≤7MB: `fs::read_to_string` (simple, no memory mapping overhead)
