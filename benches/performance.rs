@@ -7,8 +7,9 @@ use tempdir::TempDir;
 
 // Import our modules
 use xerg::colors::Color;
-use xerg::search::search_files;
-use xerg::search_xtreme::search_files_xtreme;
+use xerg::search::crawler::get_files;
+use xerg::search::default::search_files;
+use xerg::search::xtreme::search_files as search_files_xtreme;
 
 /// Create test files of different sizes for benchmarking
 fn create_test_files(temp_dir: &TempDir) -> Vec<(String, PathBuf)> {
@@ -252,7 +253,7 @@ fn bench_head_to_head_comparison(c: &mut Criterion) {
     group.bench_function("multi_dir/xerg_regular", |b| {
         b.iter(|| {
             // Use actual xerg directory search
-            let files = xerg::crawler::get_files(&multi_dir);
+            let files = get_files(&multi_dir);
             bench_xerg_regular(&files, pattern)
         })
     });
@@ -260,7 +261,7 @@ fn bench_head_to_head_comparison(c: &mut Criterion) {
     group.bench_function("multi_dir/xerg_xtreme", |b| {
         b.iter(|| {
             // Use actual xerg directory search
-            let files = xerg::crawler::get_files(&multi_dir);
+            let files = get_files(&multi_dir);
             bench_xerg_xtreme(&files, pattern)
         })
     });
@@ -282,7 +283,7 @@ fn bench_head_to_head_comparison(c: &mut Criterion) {
         b.iter(|| {
             let src_dir = std::path::PathBuf::from("src/");
             if src_dir.exists() {
-                let files = xerg::crawler::get_files(&src_dir);
+                let files = get_files(&src_dir);
                 bench_xerg_xtreme(&files, "use");
             }
         })

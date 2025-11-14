@@ -21,7 +21,7 @@
 //! ## Example
 //!
 //! ```no_run
-//! use xerg::search::search_files;
+//! use xerg::search::default::search_files;
 //! use xerg::colors::Color;
 //! use std::path::PathBuf;
 //!
@@ -33,8 +33,8 @@
 //! // Process results from receiver...
 //! ```
 
+use super::reader::FileReader;
 use crate::colors::Color;
-use crate::file_reader::FileReader;
 use crate::highlighter::TextHighlighter;
 use crate::result::{FileMatchResult, ResultMessage};
 use memmap2::MmapOptions;

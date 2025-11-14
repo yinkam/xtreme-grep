@@ -18,8 +18,8 @@
 //! codebases or when piping results to other tools.
 
 use crate::colors::Color;
-use crate::file_reader::FileReader;
 use crate::highlighter::TextHighlighter;
+use crate::search::reader::FileReader;
 use memmap2::MmapOptions;
 use rayon::scope;
 use std::fs::File;
@@ -59,7 +59,7 @@ fn _process_line(
 }
 
 /// Process a single file with immediate printing using the specified reader
-fn _process_file_xtreme(
+fn _process_file(
     filepath: &Path,
     highlighter: &TextHighlighter,
     show_stats: bool,
@@ -127,7 +127,7 @@ fn _process_file_xtreme(
 }
 
 /// Search files in xtreme mode with raw output for maximum speed
-pub fn search_files_xtreme(
+pub fn search_files(
     files: &[PathBuf],
     pattern: &str,
     color: &Color,
@@ -143,7 +143,7 @@ pub fn search_files_xtreme(
         let file = &files[0];
         let reader = FileReader::select(file, true);
 
-        match _process_file_xtreme(file, &highlighter, show_stats, reader) {
+        match _process_file(file, &highlighter, show_stats, reader) {
             Ok((lines, matches, skipped)) => {
                 return (1, lines, matches, skipped);
             }
@@ -172,7 +172,7 @@ pub fn search_files_xtreme(
 
             s.spawn(move |_| {
                 let reader = FileReader::select(&_file, false);
-                match _process_file_xtreme(&_file, _highlighter, show_stats, reader) {
+                match _process_file(&_file, _highlighter, show_stats, reader) {
                     Ok((lines, matches, skipped)) => {
                         _total_files.fetch_add(1, Ordering::Relaxed);
                         _total_lines.fetch_add(lines, Ordering::Relaxed);
@@ -203,7 +203,7 @@ mod tests {
     use tempdir::TempDir;
 
     #[test]
-    fn test_search_files_xtreme_finds_pattern() {
+    fn test_search_files_finds_pattern() {
         let temp_dir = TempDir::new("xtreme_test").unwrap();
         let test_file = temp_dir.path().join("test.txt");
 
@@ -214,7 +214,7 @@ mod tests {
 
         let files = vec![test_file.clone()];
         let (files_processed, lines, matches, skipped) =
-            search_files_xtreme(&files, "pattern", &Color::Blue, true);
+            search_files(&files, "pattern", &Color::Blue, true);
 
         // Should have processed 1 file, 3 lines, 1 match, 0 skipped
         assert_eq!(files_processed, 1);
@@ -224,7 +224,7 @@ mod tests {
     }
 
     #[test]
-    fn test_search_files_xtreme_with_stats() {
+    fn test_search_files_with_stats() {
         let temp_dir = TempDir::new("xtreme_stats_test").unwrap();
         let test_file = temp_dir.path().join("stats.txt");
 
@@ -235,7 +235,7 @@ mod tests {
 
         let files = vec![test_file.clone()];
         let (files_processed, lines, matches, skipped) =
-            search_files_xtreme(&files, "match", &Color::Blue, true);
+            search_files(&files, "match", &Color::Blue, true);
 
         // Should have processed 1 file, 3 lines, 2 matches, 0 skipped
         // Note: stats are not printed in the new direct approach, just returned
@@ -246,7 +246,7 @@ mod tests {
     }
 
     #[test]
-    fn test_search_files_xtreme_no_match() {
+    fn test_search_files_no_match() {
         let temp_dir = TempDir::new("xtreme_test").unwrap();
         let test_file = temp_dir.path().join("test.txt");
 
@@ -256,7 +256,7 @@ mod tests {
 
         let files = vec![test_file.clone()];
         let (files_processed, lines, matches, skipped) =
-            search_files_xtreme(&files, "pattern", &Color::Blue, true);
+            search_files(&files, "pattern", &Color::Blue, true);
 
         // Should have processed 1 file, 2 lines, no matches, 0 skipped
         assert_eq!(files_processed, 1);
@@ -266,7 +266,7 @@ mod tests {
     }
 
     #[test]
-    fn test_search_files_xtreme_regex_patterns() {
+    fn test_search_files_regex_patterns() {
         let temp_dir = TempDir::new("xtreme_regex_test").unwrap();
         let test_file = temp_dir.path().join("emails.txt");
 
@@ -279,7 +279,7 @@ mod tests {
 
         // Test email regex pattern
         let (files_processed, lines, matches, skipped) =
-            search_files_xtreme(&files, r"\w+@\w+\.\w+", &Color::Blue, true);
+            search_files(&files, r"\w+@\w+\.\w+", &Color::Blue, true);
 
         // Should have 2 matches (both email lines)
         assert_eq!(files_processed, 1);
@@ -290,7 +290,7 @@ mod tests {
         // Test word boundary regex
         let files2 = vec![test_file];
         let (files_processed2, lines2, matches2, skipped2) =
-            search_files_xtreme(&files2, r"\bAdmin\b", &Color::Red, true);
+            search_files(&files2, r"\bAdmin\b", &Color::Red, true);
 
         // Should match only the "Admin:" line, not "admin@test.org"
         assert_eq!(files_processed2, 1);

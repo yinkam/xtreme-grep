@@ -5,6 +5,7 @@ use std::io::{BufRead, BufReader, Read};
 use std::path::Path;
 use tempdir::TempDir;
 use xerg::colors::Color;
+use xerg::search::default::search_files;
 
 // Test different file reading strategies for single-file optimization
 
@@ -168,7 +169,7 @@ fn bench_with_without_threading(c: &mut Criterion) {
     // Current xerg with threading
     group.bench_function("with_threading", |b| {
         b.iter(|| {
-            let rx = xerg::search::search_files(
+            let rx = search_files(
                 black_box(&files),
                 black_box(pattern),
                 black_box(&color),

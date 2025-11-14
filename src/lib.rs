@@ -1,6 +1,6 @@
-//! # XGrep - A High-Performance Rust Grep Implementation
+//! # Xerg - A High-Performance Rust Grep Implementation
 //!
-//! XGrep is a fast, parallel grep implementation written in Rust that searches for patterns
+//! Xerg is an ultra-fast, parallel grep implementation written in Rust that searches for patterns
 //! in files and directories with syntax highlighting and detailed search statistics.
 //!
 //! ## Features
@@ -38,18 +38,14 @@
 //! - [`search_xtreme`]: **Ultra-fast raw output mode for maximum speed** (default)
 
 pub mod colors;
-pub mod crawler;
-pub mod file_reader;
 pub mod highlighter;
 pub mod result;
 pub mod search;
-pub mod search_xtreme;
 
 use crate::colors::Color;
-use crate::crawler::get_files;
 use crate::result::{print_result, print_xtreme_stats};
-use crate::search::search_files;
-use crate::search_xtreme::search_files_xtreme;
+use crate::search::xtreme::search_files as search_files_xtreme;
+use crate::search::{crawler::get_files, default::search_files};
 use std::path::PathBuf;
 use std::time::Instant;
 
